@@ -8,7 +8,7 @@ import { Transaction, Balance } from '../types';
 import BalanceCard from '../components/BalanceCard';
 import TransactionItem from '../components/TransactionItem';
 import AddTransactionModal from '../components/AddTransactionModal';
-import { initDatabase, getBalance, getTransactions, addTransaction, deleteTransaction } from '../database/database';
+import { initDatabase, getBalance, getTransactions, addTransaction, updateTransaction, deleteTransaction } from '../database/database';
 
 const HomeScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -18,6 +18,7 @@ const HomeScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
     initializeApp();
@@ -64,6 +65,17 @@ const HomeScreen: React.FC = () => {
     }
   };
 
+  const handleUpdateTransaction = async (id: number, transaction: Omit<Transaction, 'id'>): Promise<void> => {
+    try {
+      await updateTransaction(id, transaction);
+      await loadData();
+      setModalVisible(false);
+      setEditingTransaction(null);
+    } catch (error) {
+      console.error('Erro ao atualizar transação:', error);
+    }
+  };
+
   const handleDeleteTransaction = async (id: number): Promise<void> => {
     try {
       await deleteTransaction(id);
@@ -75,6 +87,13 @@ const HomeScreen: React.FC = () => {
 
   const openModal = (type: 'income' | 'expense'): void => {
     setModalType(type);
+    setEditingTransaction(null);
+    setModalVisible(true);
+  };
+
+  const openEditModal = (transaction: Transaction): void => {
+    setEditingTransaction(transaction);
+    setModalType(transaction.type);
     setModalVisible(true);
   };
 
@@ -96,6 +115,7 @@ const HomeScreen: React.FC = () => {
           <TransactionItem
             transaction={item}
             onDelete={handleDeleteTransaction}
+            onEdit={openEditModal}
           />
         )}
         ListHeaderComponent={
@@ -126,23 +146,38 @@ const HomeScreen: React.FC = () => {
       <View style={styles.fabContainer}>
         <FAB
           icon="plus"
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: '#E74C3C' }]}
           onPress={() => openModal('expense')}
           label="Despesa"
+          theme={{
+            colors: {
+              onSurface: colors.text,
+            }
+          }}
         />
         <FAB
           icon="plus"
-          style={[styles.fab, styles.fabIncome]}
+          style={[styles.fab, { backgroundColor: '#2ECC71' }]}
           onPress={() => openModal('income')}
           label="Receita"
+          theme={{
+            colors: {
+              onSurface: colors.text,
+            }
+          }}
         />
       </View>
 
       <AddTransactionModal
         visible={modalVisible}
-        onDismiss={() => setModalVisible(false)}
+        onDismiss={() => {
+          setModalVisible(false);
+          setEditingTransaction(null);
+        }}
         onSave={handleAddTransaction}
+        onUpdate={handleUpdateTransaction}
         type={modalType}
+        editingTransaction={editingTransaction}
       />
     </SafeAreaView>
   );
@@ -198,10 +233,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   fab: {
-    backgroundColor: '#E74C3C',
+    // backgroundColor será aplicado dinamicamente
   },
   fabIncome: {
-    backgroundColor: '#2ECC71',
+    // backgroundColor será aplicado dinamicamente
   },
 });
 

@@ -7,9 +7,10 @@ import { Transaction } from '../types';
 interface TransactionItemProps {
   transaction: Transaction;
   onDelete?: (id: number) => void;
+  onEdit?: (transaction: Transaction) => void;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onDelete }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onDelete, onEdit }) => {
   const { colors } = useTheme();
   
   const formatCurrency = (value: number): string => {
@@ -56,15 +57,26 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onDelete
             {isIncome ? '+' : '-'} {formatCurrency(transaction.amount)}
           </Paragraph>
           
-          {onDelete && (
-            <IconButton
-              icon="delete"
-              size={20}
-              onPress={() => onDelete(transaction.id)}
-              style={styles.deleteButton}
-              iconColor={colors.error}
-            />
-          )}
+          <View style={styles.actionButtons}>
+            {onEdit && (
+              <IconButton
+                icon="pencil"
+                size={20}
+                onPress={() => onEdit(transaction)}
+                style={styles.editButton}
+                iconColor={colors.primary}
+              />
+            )}
+            {onDelete && (
+              <IconButton
+                icon="delete"
+                size={20}
+                onPress={() => onDelete(transaction.id)}
+                style={styles.deleteButton}
+                iconColor={colors.error}
+              />
+            )}
+          </View>
         </View>
       </Card.Content>
     </Card>
@@ -118,6 +130,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editButton: {
+    margin: 0,
   },
   deleteButton: {
     margin: 0,

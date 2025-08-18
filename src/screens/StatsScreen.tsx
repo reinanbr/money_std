@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LineChart, PieChart, BarChart } from 'react-native-chart-kit';
 
 import { useTheme } from '../context/ThemeContext';
-import { getBalance, getTransactions } from '../database/database';
+import { getBalance, getTransactions, getBalanceHistory } from '../database/database';
 import { Transaction, Balance, CategoryStats, MonthlyData, PieChartData } from '../types';
 
 const { width } = Dimensions.get('window');
@@ -25,7 +25,7 @@ interface MonthlyStat {
   count: number;
 }
 
-type PeriodType = '3months' | '6months' | '12months' | '1year';
+type PeriodType = '7days' | '30days' | '3months' | '6months' | '12months' | '1year';
 
 const StatsScreen: React.FC = () => {
   const { colors, dark: isDarkMode } = useTheme();
@@ -36,6 +36,7 @@ const StatsScreen: React.FC = () => {
   const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([]);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [pieChartData, setPieChartData] = useState<PieChartData[]>([]);
+  const [balanceHistory, setBalanceHistory] = useState<{ date: string; total: number; income: number; expense: number }[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('6months');
   const [showPeriodOptions, setShowPeriodOptions] = useState<boolean>(false);
 
@@ -49,15 +50,89 @@ const StatsScreen: React.FC = () => {
     }
   }, [transactions, selectedPeriod]);
 
+  useEffect(() => {
+    loadBalanceHistory();
+  }, [selectedPeriod]);
+
+  useEffect(() => {
+    // Recarregar dados quando transações mudarem
+    if (transactions.length > 0) {
+      loadBalanceHistory();
+    }
+  }, [transactions]);
+
+  const loadBalanceHistory = async (): Promise<void> => {
+    try {
+      const periodDays = getPeriodDays();
+      const historyData = await getBalanceHistory(periodDays);
+      setBalanceHistory(historyData);
+    } catch (error) {
+      console.error('Erro ao carregar histórico de saldo:', error);
+    }
+  };
+
+  // Função para gerar dados de evolução do saldo baseado nas transações
+  const generateBalanceEvolution = (): { date: string; total: number }[] => {
+    const periodDays = getPeriodDays();
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - periodDays);
+    
+    // Filtrar transações do período
+    const periodTransactions = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    });
+
+    // Ordenar transações por data
+    periodTransactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Calcular saldo acumulado
+    let runningBalance = 0;
+    const balanceEvolution: { date: string; total: number }[] = [];
+    
+    // Agrupar transações por data
+    const transactionsByDate: { [key: string]: Transaction[] } = {};
+    periodTransactions.forEach(transaction => {
+      const dateKey = transaction.date;
+      if (!transactionsByDate[dateKey]) {
+        transactionsByDate[dateKey] = [];
+      }
+      transactionsByDate[dateKey].push(transaction);
+    });
+
+    // Calcular saldo para cada data com transação
+    Object.keys(transactionsByDate).sort().forEach(dateKey => {
+      const dayTransactions = transactionsByDate[dateKey];
+      const dayIncome = dayTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+      const dayExpense = dayTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      runningBalance += (dayIncome - dayExpense);
+      balanceEvolution.push({
+        date: dateKey,
+        total: runningBalance
+      });
+    });
+
+    return balanceEvolution;
+  };
+
   const loadData = async (): Promise<void> => {
     try {
-      const [balanceData, transactionsData] = await Promise.all([
+      const periodDays = getPeriodDays();
+      const [balanceData, transactionsData, balanceHistoryData] = await Promise.all([
         getBalance(),
-        getTransactions()
+        getTransactions(),
+        getBalanceHistory(periodDays)
       ]);
       
       setBalance(balanceData);
       setTransactions(transactionsData);
+      setBalanceHistory(balanceHistoryData);
       calculateCategoryStats(transactionsData);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -152,6 +227,8 @@ const StatsScreen: React.FC = () => {
 
   const getPeriodLabel = (): string => {
     switch (selectedPeriod) {
+      case '7days': return 'Últimos 7 Dias';
+      case '30days': return 'Últimos 30 Dias';
       case '3months': return 'Últimos 3 Meses';
       case '6months': return 'Últimos 6 Meses';
       case '12months': return 'Últimos 12 Meses';
@@ -160,48 +237,107 @@ const StatsScreen: React.FC = () => {
     }
   };
 
-  const getPeriodMonths = (): number => {
+  const getPeriodDays = (): number => {
     switch (selectedPeriod) {
-      case '3months': return 3;
-      case '6months': return 6;
-      case '12months': return 12;
-      case '1year': return 12;
-      default: return 6;
+      case '7days': return 7;
+      case '30days': return 30;
+      case '3months': return 90;
+      case '6months': return 180;
+      case '12months': return 365;
+      case '1year': return 365;
+      default: return 180;
     }
   };
 
   const generateMonthlyData = (): void => {
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-    const periodMonths = getPeriodMonths();
-    
+    const periodDays = getPeriodDays();
+    const currentDate = new Date();
     const monthlyData: MonthlyData[] = [];
     
-    // Gerar dados do período selecionado
-    for (let i = periodMonths - 1; i >= 0; i--) {
-      const monthIndex = (currentMonth - i + 12) % 12;
-      const year = currentMonth - i < 0 ? currentYear - 1 : currentYear;
+    if (selectedPeriod === '7days') {
+      // Para 7 dias, mostrar cada dia
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(currentDate);
+        date.setDate(date.getDate() - i);
+        
+        const dayTransactions = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.toDateString() === date.toDateString();
+        });
+
+        const income = dayTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0);
+
+        const expense = dayTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0);
+
+        monthlyData.push({
+          month: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+          income: income,
+          expense: expense
+        });
+      }
+    } else if (selectedPeriod === '30days') {
+      // Para 30 dias, agrupar por semanas (4 semanas)
+      for (let week = 3; week >= 0; week--) {
+        const weekStart = new Date(currentDate);
+        weekStart.setDate(weekStart.getDate() - (week * 7) - 6);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        
+        const weekTransactions = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate >= weekStart && transactionDate <= weekEnd;
+        });
+
+        const income = weekTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0);
+
+        const expense = weekTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0);
+
+        monthlyData.push({
+          month: `Sem ${4-week}`,
+          income: income,
+          expense: expense
+        });
+      }
+    } else {
+      // Para meses, mostrar cada mês
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth();
+      const periodMonths = selectedPeriod === '3months' ? 3 : 
+                          selectedPeriod === '6months' ? 6 : 12;
       
-      const monthTransactions = transactions.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate.getMonth() === monthIndex && 
-               transactionDate.getFullYear() === year;
-      });
+      for (let i = periodMonths - 1; i >= 0; i--) {
+        const monthIndex = (currentMonth - i + 12) % 12;
+        const year = currentMonth - i < 0 ? currentYear - 1 : currentYear;
+        
+        const monthTransactions = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getMonth() === monthIndex && 
+                 transactionDate.getFullYear() === year;
+        });
 
-      const income = monthTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
+        const income = monthTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0);
 
-      const expense = monthTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
+        const expense = monthTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0);
 
-      monthlyData.push({
-        month: months[monthIndex],
-        income: income,
-        expense: expense
-      });
+        monthlyData.push({
+          month: months[monthIndex],
+          income: income,
+          expense: expense
+        });
+      }
     }
     
     setMonthlyData(monthlyData);
@@ -241,6 +377,32 @@ const StatsScreen: React.FC = () => {
 
       {showPeriodOptions && (
         <View style={[styles.periodOptions, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <TouchableOpacity
+            style={[
+              styles.periodOption, 
+              { borderBottomColor: colors.border },
+              selectedPeriod === '7days' && { backgroundColor: colors.primary + '20' }
+            ]}
+            onPress={() => {
+              setSelectedPeriod('7days');
+              setShowPeriodOptions(false);
+            }}
+          >
+            <Text style={[styles.periodOptionText, { color: colors.text }]}>Últimos 7 Dias</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.periodOption, 
+              { borderBottomColor: colors.border },
+              selectedPeriod === '30days' && { backgroundColor: colors.primary + '20' }
+            ]}
+            onPress={() => {
+              setSelectedPeriod('30days');
+              setShowPeriodOptions(false);
+            }}
+          >
+            <Text style={[styles.periodOptionText, { color: colors.text }]}>Últimos 30 Dias</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.periodOption, 
@@ -370,6 +532,9 @@ const StatsScreen: React.FC = () => {
                     r: '6',
                     strokeWidth: '2',
                     stroke: '#ffa726'
+                  },
+                  propsForLabels: {
+                    fontSize: selectedPeriod === '30days' ? 10 : 12,
                   }
                 }}
                 bezier
@@ -378,6 +543,64 @@ const StatsScreen: React.FC = () => {
             ) : (
               <Text style={styles.emptyText}>Dados insuficientes para gerar gráfico</Text>
             )}
+          </Card.Content>
+        </Card>
+
+        {/* Gráfico de Linha - Evolução do Saldo Total */}
+        <Card style={[styles.card, { backgroundColor: colors.card }]}>
+          <Card.Content>
+            <Title style={{ color: colors.text }}>Evolução do Saldo Total - {getPeriodLabel()}</Title>
+            {(() => {
+              const balanceEvolution = generateBalanceEvolution();
+              return balanceEvolution.length > 0 ? (
+                <LineChart
+                  data={{
+                    labels: balanceEvolution.map(item => {
+                      const date = new Date(item.date);
+                      if (selectedPeriod === '7days') {
+                        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                      } else if (selectedPeriod === '30days') {
+                        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                      } else {
+                        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                      }
+                    }),
+                    datasets: [
+                      {
+                        data: balanceEvolution.map(item => item.total),
+                        color: (opacity = 1) => `rgba(52, 152, 219, ${opacity})`,
+                        strokeWidth: 3
+                      }
+                    ]
+                  }}
+                  width={width - 64}
+                  height={220}
+                  chartConfig={{
+                    backgroundColor: colors.card,
+                    backgroundGradientFrom: colors.card,
+                    backgroundGradientTo: colors.card,
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(${isDarkMode ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`,
+                    labelColor: (opacity = 1) => `rgba(${isDarkMode ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`,
+                    style: {
+                      borderRadius: 16
+                    },
+                    propsForDots: {
+                      r: '6',
+                      strokeWidth: '2',
+                      stroke: '#3498db'
+                    },
+                    propsForLabels: {
+                      fontSize: balanceEvolution.length > 10 ? 10 : 12,
+                    }
+                  }}
+                  bezier
+                  style={styles.chart}
+                />
+              ) : (
+                <Text style={styles.emptyText}>Dados insuficientes para gerar gráfico</Text>
+              );
+            })()}
           </Card.Content>
         </Card>
 

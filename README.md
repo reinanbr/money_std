@@ -1,204 +1,209 @@
-# Money STD - Controle Financeiro Pessoal
+# 💰 Money STD - Controle Financeiro
 
-Um aplicativo completo para controle financeiro pessoal desenvolvido em **React Native** com **TypeScript**, usando **Expo** e **SQLite** para armazenamento local.
+Um aplicativo móvel completo para controle financeiro pessoal, desenvolvido em React Native com TypeScript.
 
-## 🚀 Funcionalidades
+## 📱 Sobre o App
 
-- **Gestão de Transações**: Adicione receitas e despesas com descrição e categoria
-- **Categorização**: Sistema de categorias personalizáveis com cores
-- **Dashboard**: Visualização do saldo total, receitas e despesas
-- **Estatísticas Avançadas**: Gráficos informativos (linha, pizza, barras)
-- **Filtros**: Filtre transações por tipo e categoria
-- **Tema Dinâmico**: Modo claro, escuro e automático baseado no sistema
-- **Pull-to-Refresh**: Atualize os dados puxando para baixo
-- **Splash Screen**: Tela de carregamento animada
-- **Configurações**: Gerencie categorias e preferências do app
+Money STD é um aplicativo de controle financeiro que permite gerenciar receitas e despesas de forma simples e intuitiva, com suporte a temas claro/escuro automático e visualizações gráficas detalhadas.
 
-## 🛠️ Tecnologias Utilizadas
+### ✨ Funcionalidades
 
-- **React Native** (0.72.10)
-- **TypeScript** (5.1.3)
-- **Expo** (49.0.15)
-- **SQLite** (expo-sqlite)
-- **React Navigation** (Bottom Tabs)
-- **React Native Paper** (UI Components)
-- **React Native Chart Kit** (Gráficos)
-- **AsyncStorage** (Persistência de dados)
-
-## 📱 Telas do App
-
-1. **Início**: Dashboard com saldo e transações recentes
-2. **Transações**: Lista completa com filtros
-3. **Estatísticas**: Gráficos e análises financeiras
-4. **Configurações**: Gerenciamento de categorias e preferências
-
-## 🎨 Tema e Personalização
-
-- **Modo Claro**: Interface clara e limpa
-- **Modo Escuro**: Interface escura para uso noturno
-- **Modo Automático**: Segue a configuração do sistema
-- **Cores Dinâmicas**: Todos os elementos se adaptam ao tema
-
-## 📊 Gráficos e Estatísticas
-
-- **Evolução Mensal**: Gráfico de linha dos últimos 6 meses
-- **Distribuição de Despesas**: Gráfico de pizza por categoria
-- **Comparação Mensal**: Gráfico de barras receitas vs despesas
-- **Top Categorias**: Ranking das categorias mais utilizadas
-
-## 🗄️ Estrutura do Banco de Dados
-
-### Tabela: categories
-```sql
-CREATE TABLE categories (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  type TEXT NOT NULL,
-  color TEXT DEFAULT '#007AFF'
-);
-```
-
-### Tabela: transactions
-```sql
-CREATE TABLE transactions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  description TEXT NOT NULL,
-  amount REAL NOT NULL,
-  type TEXT NOT NULL,
-  category_id INTEGER,
-  date TEXT NOT NULL,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (category_id) REFERENCES categories (id)
-);
-```
-
-## 📦 Instalação
-
-### Pré-requisitos
-- Node.js (versão 16 ou superior)
-- npm ou yarn
-- Expo CLI
-- Expo Go (para testar no dispositivo)
-
-### Passos para Instalação
-
-1. **Clone o repositório**
-   ```bash
-   git clone <url-do-repositorio>
-   cd money_std
-   ```
-
-2. **Instale as dependências**
-   ```bash
-   npm install
-   ```
-
-3. **Execute o script de instalação automática**
-   ```bash
-   chmod +x install.sh
-   ./install.sh
-   ```
-
-4. **Inicie o projeto**
-   ```bash
-   npx expo start
-   ```
-
-5. **Teste no dispositivo**
-   - Instale o Expo Go no seu smartphone
-   - Escaneie o QR code que aparece no terminal
-   - Ou pressione 'a' para abrir no Android (se tiver emulador)
+- 📊 **Dashboard Principal**: Visualização do saldo total, receitas e despesas
+- 💸 **Gerenciamento de Transações**: Adicionar, editar e excluir receitas e despesas
+- 📈 **Estatísticas Avançadas**: Gráficos de evolução por período (7 dias, 30 dias, 3/6/12 meses, 1 ano)
+- 🏷️ **Categorias Personalizadas**: Gerencie suas próprias categorias de transações
+- 🌓 **Tema Automático**: Detecção automática do tema do sistema (claro/escuro)
+- 📤 **Exportar/Importar**: Backup e restauração de dados em formato JSON
+- 🔄 **Pull-to-Refresh**: Atualize os dados puxando para baixo
+- 💾 **Histórico de Saldo**: Evolução do saldo total baseada nas transações
 
 ## 🏗️ Estrutura do Projeto
 
 ```
 money_std/
-├── src/
-│   ├── components/          # Componentes reutilizáveis
-│   │   ├── AddTransactionModal.tsx
-│   │   ├── BalanceCard.tsx
-│   │   └── TransactionItem.tsx
-│   ├── context/            # Contexto do tema
-│   │   └── ThemeContext.tsx
-│   ├── database/           # Operações do banco de dados
-│   │   └── database.ts
-│   ├── screens/            # Telas do aplicativo
-│   │   ├── HomeScreen.tsx
-│   │   ├── TransactionsScreen.tsx
-│   │   ├── StatsScreen.tsx
-│   │   ├── SettingsScreen.tsx
-│   │   └── SplashScreen.tsx
-│   └── types/              # Definições de tipos TypeScript
-│       └── index.ts
-├── App.tsx                 # Componente principal
-├── package.json
-├── tsconfig.json          # Configuração do TypeScript
-└── README.md
+├── 📁 src/
+│   ├── 📁 components/           # Componentes reutilizáveis
+│   │   ├── AddTransactionModal.tsx  # Modal para adicionar/editar transações
+│   │   ├── BalanceCard.tsx         # Card de exibição do saldo
+│   │   └── TransactionItem.tsx     # Item individual de transação
+│   ├── 📁 context/             # Context API para gerenciamento de estado
+│   │   └── ThemeContext.tsx        # Contexto de tema claro/escuro
+│   ├── 📁 database/            # Camada de dados SQLite
+│   │   └── database.ts             # Operações CRUD e configuração do banco
+│   ├── 📁 screens/             # Telas do aplicativo
+│   │   ├── HomeScreen.tsx          # Tela principal com dashboard
+│   │   ├── StatsScreen.tsx         # Tela de estatísticas e gráficos
+│   │   ├── TransactionsScreen.tsx  # Tela de listagem e filtros
+│   │   ├── SettingsScreen.tsx      # Tela de configurações
+│   │   └── SplashScreen.tsx        # Tela de carregamento
+│   └── 📁 types/               # Definições de tipos TypeScript
+│       └── index.ts                # Interfaces e tipos globais
+├── 📁 assets/                  # Recursos visuais
+│   ├── icon.png                    # Ícone do app (1024x1024)
+│   ├── adaptive-icon.png           # Ícone adaptativo Android
+│   ├── splash.png                  # Splash screen (1284x2778)
+│   ├── favicon.png                 # Favicon web
+│   └── logo_app.png               # Logo base
+├── 📁 scripts/                 # Scripts de automação
+│   └── build.sh                    # Script de build automatizado
+├── app.json                    # Configuração do Expo
+├── eas.json                    # Configuração do EAS Build
+├── package.json                # Dependências e scripts
+├── tsconfig.json               # Configuração TypeScript
+└── babel.config.js             # Configuração Babel
 ```
 
-## 🔧 Configuração do TypeScript
+## 🛠️ Tecnologias Utilizadas
 
-O projeto está configurado com TypeScript para maior segurança de tipos e melhor experiência de desenvolvimento:
+- **React Native** - Framework de desenvolvimento móvel
+- **TypeScript** - Superset JavaScript com tipagem estática
+- **Expo** - Plataforma de desenvolvimento React Native
+- **SQLite** - Banco de dados local para persistência
+- **React Navigation** - Navegação entre telas
+- **React Native Paper** - Biblioteca de componentes Material Design
+- **React Native Chart Kit** - Biblioteca para gráficos
+- **EAS Build** - Serviço de build da Expo
 
-- **tsconfig.json**: Configuração do compilador TypeScript
-- **Tipos definidos**: Interfaces para todas as estruturas de dados
-- **Verificação de tipos**: Execute `npx tsc --noEmit` para verificar tipos
+## 📦 Instalação e Configuração
 
-## 📋 Categorias Padrão
+### Pré-requisitos
 
-### Despesas
-- Alimentação (#FF6B6B)
-- Transporte (#4ECDC4)
-- Moradia (#45B7D1)
-- Saúde (#96CEB4)
-- Educação (#FFEAA7)
-- Lazer (#DDA0DD)
-- Outros (#95A5A6)
+- Node.js 18+
+- npm ou yarn
+- Expo CLI
+- EAS CLI (para builds)
 
-### Receitas
-- Salário (#2ECC71)
-- Freelance (#F39C12)
-- Investimentos (#9B59B6)
+### 1️⃣ Clone o projeto
 
-## 🎯 Como Usar
-
-### Adicionando Transações
-1. Toque no botão "+" na tela inicial
-2. Escolha entre "Receita" ou "Despesa"
-3. Preencha descrição, valor e categoria
-4. Selecione a data
-5. Toque em "Salvar"
-
-### Filtrando Transações
-1. Vá para a aba "Transações"
-2. Use os botões para filtrar por tipo
-3. Toque nas categorias para filtrar por categoria específica
-
-### Visualizando Estatísticas
-1. Vá para a aba "Estatísticas"
-2. Veja os gráficos de evolução mensal
-3. Analise a distribuição de despesas
-4. Compare receitas vs despesas do mês atual
-
-### Gerenciando Categorias
-1. Vá para "Configurações"
-2. Toque no ícone "+" para adicionar categoria
-3. Escolha nome, tipo e cor
-4. Toque no ícone de lixeira para excluir
-
-## 🚀 Build para Produção
-
-### Android
 ```bash
-npx expo build:android
+git clone <repository-url>
+cd money_std
 ```
 
-### iOS
+### 2️⃣ Instale as dependências
+
 ```bash
-npx expo build:ios
+npm install
+# ou
+yarn install
 ```
 
-## 🤝 Contribuição
+### 3️⃣ Configure as ferramentas
+
+```bash
+# Instalar Expo CLI globalmente
+npm install -g @expo/cli
+
+# Instalar EAS CLI para builds
+npm install -g eas-cli
+```
+
+## 🚀 Executando o Projeto
+
+### Desenvolvimento
+
+```bash
+# Iniciar o servidor de desenvolvimento
+npm start
+# ou
+npx expo start
+
+# Para forçar o uso do Expo Go
+npx expo start --go
+
+# Para limpar cache
+npx expo start --clear
+```
+
+### Testando no dispositivo
+
+1. **Android**: Instale o app Expo Go na Play Store
+2. **iOS**: Instale o app Expo Go na App Store
+3. Escaneie o QR code exibido no terminal
+4. O app será carregado automaticamente
+
+## 🏗️ Builds de Produção
+
+### Configurar EAS
+
+```bash
+# Fazer login na Expo
+eas login
+
+# Configurar o projeto (se necessário)
+eas build:configure
+```
+
+### Gerar APK (Android)
+
+```bash
+# Build para desenvolvimento/teste
+eas build --platform android --profile preview
+
+# Build para produção (recomendado para Play Store)
+eas build --platform android --profile production
+```
+
+### Gerar AAB (Android App Bundle)
+
+```bash
+# Para publicação na Play Store
+eas build --platform android --profile production
+```
+
+### Perfis de Build (eas.json)
+
+- **development**: Build de desenvolvimento com Expo Dev Client
+- **preview**: Gera APK para testes externos
+- **production**: Gera AAB otimizado para Play Store
+
+## 📱 Screenshots
+
+> **Nota**: Adicione aqui os prints de tela do seu aplicativo:
+
+- 🏠 **Tela Principal**: Dashboard com saldo e transações recentes
+- 📊 **Estatísticas**: Gráficos de evolução e distribuição
+- 📋 **Transações**: Lista com filtros por tipo e categoria
+- ⚙️ **Configurações**: Gerenciamento de categorias e exportação
+- 🌓 **Tema Escuro**: Todas as telas com suporte a dark mode
+
+## 🗄️ Banco de Dados
+
+O app utiliza SQLite local com as seguintes tabelas:
+
+### Transações
+- `id` (INTEGER PRIMARY KEY)
+- `description` (TEXT)
+- `amount` (REAL)
+- `type` ('income' | 'expense')
+- `category_id` (INTEGER)
+- `date` (TEXT)
+- `created_at` (TEXT)
+
+### Categorias
+- `id` (INTEGER PRIMARY KEY)
+- `name` (TEXT)
+- `type` ('income' | 'expense')
+- `color` (TEXT)
+
+### Histórico de Saldo
+- `id` (INTEGER PRIMARY KEY)
+- `total_balance` (REAL)
+- `income` (REAL)
+- `expense` (REAL)
+- `date` (TEXT)
+- `created_at` (TEXT)
+
+## 📂 Guias Adicionais
+
+- 📋 **[Comandos Rápidos](COMANDOS_RAPIDOS.md)** - Comandos essenciais para desenvolvimento
+- 🚀 **[Guia de Publicação](README_PUBLICACAO.md)** - Tutorial completo para publicar na Play Store
+- 🎨 **[Especificações de Assets](assets/README_ASSETS.md)** - Dimensões e formatos de imagens
+- 🔧 **[Solução de Problemas](SOLUCAO_PROBLEMAS.md)** - Resolução de erros comuns
+- ⚡ **[Guia Rápido de Assets](CRIAR_ASSETS.md)** - Tutorial para criar assets
+- 📋 **[Exemplo de Uso](EXEMPLO_USO.md)** - Exemplos práticos de uso
+
+## 🤝 Contribuindo
 
 1. Faça um fork do projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
@@ -206,30 +211,18 @@ npx expo build:ios
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## 📄 Licença
+## 📝 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
-## 🐛 Problemas Conhecidos
+## 💬 Suporte
 
-- Funcionalidades de exportar/importar dados estão em desenvolvimento
-- Algumas funcionalidades avançadas podem não funcionar em dispositivos mais antigos
+Para dúvidas ou suporte:
 
-## 📞 Suporte
-
-Para suporte, entre em contato: suporte@moneystd.com
-
-## 🔄 Histórico de Versões
-
-### v1.0.0
-- ✅ Conversão completa para TypeScript
-- ✅ Sistema de temas dinâmico
-- ✅ Gráficos informativos
-- ✅ Gestão de categorias
-- ✅ Splash screen animada
-- ✅ Pull-to-refresh
-- ✅ Interface responsiva
+- �� Email: [seu-email@exemplo.com]
+- 🐛 Issues: [GitHub Issues](repository-url/issues)
+- 📖 Documentação: [Wiki do projeto](repository-url/wiki)
 
 ---
 
-**Desenvolvido com ❤️ usando React Native, TypeScript e Expo** 
+**Desenvolvido com ❤️ usando React Native + TypeScript** 

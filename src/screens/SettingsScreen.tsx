@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Share, Clipboard, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Share, Clipboard, Platform, Linking } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 import { 
   List, 
   Text, 
@@ -181,19 +183,61 @@ const SettingsScreen: React.FC = () => {
   };
 
   const importData = async (): Promise<void> => {
-    setShowImportDialog(true);
+    Alert.alert(
+      'Importar Dados',
+      'Escolha como deseja importar os dados:',
+      [
+        {
+          text: '📁 Selecionar Arquivo',
+          onPress: async () => {
+            try {
+              const result = await DocumentPicker.getDocumentAsync({
+                type: 'application/json',
+                copyToCacheDirectory: true,
+              });
+
+              if (result.canceled) {
+                return;
+              }
+
+              const file = result.assets[0];
+              if (!file) {
+                Alert.alert('❌ Erro', 'Nenhum arquivo selecionado.');
+                return;
+              }
+
+              // Ler o conteúdo do arquivo
+              const fileContent = await FileSystem.readAsStringAsync(file.uri);
+              
+              // Processar a importação
+              await processImportData(fileContent, file.name);
+            } catch (error) {
+              console.error('Erro ao selecionar arquivo:', error);
+              Alert.alert('❌ Erro', 'Erro ao selecionar arquivo. Tente novamente.');
+            }
+          }
+        },
+        {
+          text: '📝 Colar JSON',
+          onPress: () => setShowImportDialog(true)
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel'
+        }
+      ]
+    );
   };
 
-  const handleImportData = async (): Promise<void> => {
-    if (!importJsonData.trim()) {
+  const processImportData = async (jsonData: string, fileName: string): Promise<void> => {
+    if (!jsonData.trim()) {
       Alert.alert('Erro', 'Por favor, insira os dados JSON.');
       return;
     }
-
     try {
       Alert.alert(
         'Confirmar Importação',
-        'Esta ação irá substituir todos os dados atuais. Tem certeza?',
+        `Esta ação irá substituir todos os dados atuais.\n\nArquivo: ${fileName}\n\nTem certeza?`,
         [
           {
             text: 'Cancelar',
@@ -204,21 +248,21 @@ const SettingsScreen: React.FC = () => {
             style: 'destructive',
             onPress: async () => {
               try {
-                await importDataFromJSON(importJsonData);
+                await importDataFromJSON(jsonData);
                 setImportJsonData('');
                 setShowImportDialog(false);
                 loadCategories(); // Recarregar categorias
-                Alert.alert('Sucesso', 'Dados importados com sucesso!');
+                Alert.alert('✅ Sucesso', 'Dados importados com sucesso!');
               } catch (error) {
                 console.error('Erro ao importar dados:', error);
-                Alert.alert('Erro', 'Erro ao importar dados. Verifique se o JSON é válido.');
+                Alert.alert('❌ Erro', 'Erro ao importar dados. Verifique se o JSON é válido.');
               }
             }
           }
         ]
       );
     } catch (error) {
-      Alert.alert('Erro', 'JSON inválido. Verifique o formato dos dados.');
+      Alert.alert('❌ Erro', 'JSON inválido. Verifique o formato dos dados.');
     }
   };
 
@@ -248,28 +292,16 @@ const SettingsScreen: React.FC = () => {
           text: '📤 Compartilhar Arquivo',
           onPress: async () => {
             try {
-              await Share.share({
-                title: 'Money STD - Backup de Dados',
-                message: `Backup dos dados do Money STD gerado em ${new Date().toLocaleDateString('pt-BR')}`,
-                url: `file://${filePath}`,
-              });
+              await shareFile(filePath, fileName);
             } catch (error) {
               Alert.alert('❌ Erro', 'Erro ao compartilhar arquivo.');
             }
           }
         },
         {
-          text: '📱 Ver no Gerenciador',
+          text: '📱 Abrir Gerenciador',
           onPress: async () => {
-            try {
-              await Share.share({
-                title: 'Money STD - Backup de Dados',
-                message: `Backup dos dados do Money STD gerado em ${new Date().toLocaleDateString('pt-BR')}`,
-                url: `file://${filePath}`,
-              });
-            } catch (error) {
-              Alert.alert('❌ Erro', 'Erro ao abrir arquivo.');
-            }
+            await openFileManager(filePath, fileName);
           }
         },
         {
@@ -278,6 +310,89 @@ const SettingsScreen: React.FC = () => {
         }
       ]
     );
+  };
+
+  const shareFile = async (filePath: string, fileName: string): Promise<void> => {
+    try {
+      // Verificar se o arquivo existe
+      const fileInfo = await FileSystem.getInfoAsync(filePath);
+      
+      if (!fileInfo.exists) {
+        Alert.alert('❌ Erro', 'Arquivo não encontrado.');
+        return;
+      }
+
+      // Verificar se o compartilhamento está disponível
+      const isAvailable = await Sharing.isAvailableAsync();
+      
+      if (!isAvailable) {
+        Alert.alert('❌ Erro', 'Compartilhamento não está disponível neste dispositivo.');
+        return;
+      }
+
+      // Compartilhar o arquivo usando expo-sharing
+      await Sharing.shareAsync(filePath, {
+        mimeType: 'application/json',
+        dialogTitle: 'Compartilhar Backup Money STD',
+        UTI: 'public.json'
+      });
+
+      Alert.alert('✅ Sucesso', 'Arquivo compartilhado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao compartilhar arquivo:', error);
+      Alert.alert('❌ Erro', 'Erro ao compartilhar arquivo. Tente novamente.');
+    }
+  };
+
+  const openFileManager = async (filePath: string, fileName: string): Promise<void> => {
+    try {
+      if (Platform.OS === 'android') {
+        // No Android, mostrar instruções para encontrar o arquivo
+        const directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
+        
+        Alert.alert(
+          '📁 Local do Arquivo',
+          `Arquivo salvo com sucesso!\n\n📂 Diretório: ${directoryPath}\n📄 Arquivo: ${fileName}\n\nPara acessar:\n1. Abra o app "Arquivos"\n2. Navegue até o diretório acima\n3. Procure pelo arquivo ${fileName}`,
+          [
+            {
+              text: '📤 Compartilhar Localização',
+              onPress: async () => {
+                await Share.share({
+                  title: 'Local do Arquivo Money STD',
+                  message: `Arquivo salvo em: ${filePath}`,
+                });
+              }
+            },
+            {
+              text: '📁 Tentar Abrir',
+              onPress: async () => {
+                try {
+                  // Tentar abrir o diretório pai
+                  const parentDir = directoryPath.substring(0, directoryPath.lastIndexOf('/'));
+                  await Linking.openURL(`file://${parentDir}`);
+                } catch (error) {
+                  Alert.alert('❌ Erro', 'Não foi possível abrir o gerenciador automaticamente. Use as instruções acima.');
+                }
+              }
+            },
+            {
+              text: '✅ OK',
+              style: 'default'
+            }
+          ]
+        );
+      } else {
+        // No iOS, tentar abrir o arquivo diretamente
+        try {
+          await Linking.openURL(`file://${filePath}`);
+        } catch (error) {
+          Alert.alert('❌ Erro', 'Não foi possível abrir o arquivo automaticamente.');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao abrir gerenciador:', error);
+      Alert.alert('❌ Erro', 'Não foi possível abrir o gerenciador de arquivos.');
+    }
   };
 
   return (
@@ -299,7 +414,6 @@ const SettingsScreen: React.FC = () => {
                 iconColor={colors.primary}
               />
             </View>
-            
             <View style={styles.categoriesContainer}>
               {categories.map((category) => (
                 <View key={category.id} style={styles.categoryItem}>
@@ -533,7 +647,7 @@ const SettingsScreen: React.FC = () => {
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setShowImportDialog(false)} textColor={colors.textSecondary}>Cancelar</Button>
-            <Button onPress={handleImportData} textColor={colors.primary}>Importar</Button>
+            <Button onPress={() => processImportData(importJsonData, 'dados.json')} textColor={colors.primary}>Importar</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>

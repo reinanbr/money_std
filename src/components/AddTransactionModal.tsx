@@ -11,21 +11,27 @@ import {
   Text
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Category } from '../types';
+import { Category, Transaction } from '../types';
+import { useTheme } from '../context/ThemeContext';
 
 interface AddTransactionModalProps {
   visible: boolean;
   onDismiss: () => void;
   onSave: (transaction: Omit<import('../types').Transaction, 'id'>) => void;
+  onUpdate?: (id: number, transaction: Omit<import('../types').Transaction, 'id'>) => void;
   type?: 'income' | 'expense';
+  editingTransaction?: Transaction | null;
 }
 
 const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ 
   visible, 
   onDismiss, 
   onSave, 
-  type = 'expense' 
+  onUpdate,
+  type = 'expense',
+  editingTransaction = null
 }) => {
+  const { colors, dark: isDarkMode } = useTheme();
   const [description, setDescription] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [selectedType, setSelectedType] = useState<'income' | 'expense'>(type);
@@ -35,8 +41,38 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
 
   useEffect(() => {
-    loadCategories();
+    if (selectedType) {
+      loadCategories();
+    }
   }, [selectedType]);
+
+  // Carregar categorias quando o modal abrir
+  useEffect(() => {
+    if (visible && selectedType) {
+      loadCategories();
+    }
+  }, [visible, selectedType]);
+
+  // Atualizar selectedType quando o prop type mudar
+  useEffect(() => {
+    setSelectedType(type);
+    // Reset do formulário quando mudar o tipo
+    setDescription('');
+    setAmount('');
+    setSelectedCategory(null);
+    setDate(new Date());
+  }, [type]);
+
+  // Carregar dados da transação quando estiver editando
+  useEffect(() => {
+    if (editingTransaction) {
+      setDescription(editingTransaction.description);
+      setAmount(editingTransaction.amount.toString());
+      setSelectedType(editingTransaction.type);
+      setSelectedCategory(editingTransaction.category_id);
+      setDate(new Date(editingTransaction.date));
+    }
+  }, [editingTransaction]);
 
   const loadCategories = async (): Promise<void> => {
     try {
@@ -62,12 +98,24 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       date: date.toISOString().split('T')[0]
     };
 
-    onSave(transaction);
+    if (editingTransaction && onUpdate) {
+      onUpdate(editingTransaction.id, transaction);
+    } else {
+      onSave(transaction);
+    }
     
     // Reset form
     setDescription('');
     setAmount('');
     setDate(new Date());
+  };
+
+  const handleDismiss = (): void => {
+    // Reset form ao fechar
+    setDescription('');
+    setAmount('');
+    setDate(new Date());
+    onDismiss();
   };
 
   const formatCurrency = (value: string): string => {
@@ -85,22 +133,55 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     <Portal>
       <Modal
         visible={visible}
-        onDismiss={onDismiss}
-        contentContainerStyle={styles.modal}
+        onDismiss={handleDismiss}
+        contentContainerStyle={[styles.modal, { backgroundColor: colors.surface }]}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
-          <Title style={styles.title}>
-            {selectedType === 'income' ? 'Nova Receita' : 'Nova Despesa'}
+          <Title style={[styles.title, { color: colors.text }]}>
+            {editingTransaction 
+              ? (selectedType === 'income' ? 'Editar Receita' : 'Editar Despesa')
+              : (selectedType === 'income' ? 'Nova Receita' : 'Nova Despesa')
+            }
           </Title>
 
           <SegmentedButtons
             value={selectedType}
-            onValueChange={setSelectedType}
+            onValueChange={(value) => {
+              setSelectedType(value as 'income' | 'expense');
+            }}
             buttons={[
-              { value: 'expense', label: 'Despesa' },
-              { value: 'income', label: 'Receita' }
+              { 
+                value: 'expense', 
+                label: 'Despesa',
+                style: { 
+                  backgroundColor: selectedType === 'expense' ? '#FF9800' : 'transparent'
+                }
+              },
+              { 
+                value: 'income', 
+                label: 'Receita',
+                style: { 
+                  backgroundColor: selectedType === 'income' ? '#FF9800' : 'transparent'
+                }
+              }
             ]}
             style={styles.segmentedButtons}
+
+            theme={{
+              colors: {
+                primary: '#FF9800',
+                onSurface: isDarkMode ? '#FFFFFF' : '#000000',
+                onSurfaceVariant: isDarkMode ? '#FFFFFF' : '#666666',
+                onPrimary: '#FF9800',
+                surface: colors.surface,
+                surfaceVariant: colors.surface,
+                outline: colors.border,
+                onSecondary: '#FF9800',
+                secondary: '#FF9800',
+                onTertiary: '#FF9800',
+                tertiary: '#FF9800',
+              }
+            }}
           />
 
           <TextInput
@@ -110,6 +191,15 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             mode="outlined"
             style={styles.input}
             maxLength={100}
+            textColor={colors.text}
+            theme={{
+              colors: {
+                primary: colors.primary,
+                onSurface: colors.text,
+                onSurfaceVariant: colors.textSecondary,
+                outline: colors.border,
+              }
+            }}
           />
 
           <TextInput
@@ -119,19 +209,36 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             mode="outlined"
             style={styles.input}
             keyboardType="numeric"
-            left={<TextInput.Affix text="R$ " />}
+            left={
+              <TextInput.Affix text="R$" textStyle={{
+                color: isDarkMode ? '#9E9E9E' : '#000000',
+                fontSize: 16,
+                fontWeight: '500'
+              }} />
+            }
+            textColor={colors.text}
+            theme={{
+              colors: {
+                primary: colors.primary,
+                onSurface: colors.text,
+                onSurfaceVariant: colors.textSecondary,
+                outline: colors.border,
+                onSurfaceDisabled: colors.textSecondary,
+              }
+            }}
           />
 
-          <Text style={styles.label}>Data</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Data</Text>
           <Button
             mode="outlined"
             onPress={() => setShowDatePicker(true)}
-            style={styles.dateButton}
+            style={[styles.dateButton, { borderColor: colors.border }]}
+            textColor={colors.text}
           >
             {date.toLocaleDateString('pt-BR')}
           </Button>
 
-          <Text style={styles.label}>Categoria</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Categoria</Text>
           <View style={styles.categoriesContainer}>
             {categories.map((category) => (
               <Chip
@@ -140,13 +247,14 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 onPress={() => setSelectedCategory(category.id)}
                 style={[
                   styles.categoryChip,
+                  { borderColor: colors.border },
                   selectedCategory === category.id && {
                     backgroundColor: category.color + '20',
                     borderColor: category.color
                   }
                 ]}
                 textStyle={{
-                  color: selectedCategory === category.id ? category.color : '#666'
+                  color: selectedCategory === category.id ? category.color : colors.textSecondary
                 }}
               >
                 {category.name}
@@ -157,8 +265,9 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           <View style={styles.buttonContainer}>
             <Button
               mode="outlined"
-              onPress={onDismiss}
-              style={[styles.button, styles.cancelButton]}
+              onPress={handleDismiss}
+              style={[styles.button, styles.cancelButton, { borderColor: colors.border }]}
+              textColor={colors.text}
             >
               Cancelar
             </Button>
@@ -168,7 +277,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               style={[styles.button, styles.saveButton]}
               disabled={!description.trim() || !amount.trim() || !selectedCategory}
             >
-              Salvar
+              {editingTransaction ? 'Atualizar' : 'Salvar'}
             </Button>
           </View>
         </ScrollView>
@@ -189,7 +298,6 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
 const styles = StyleSheet.create({
   modal: {
-    backgroundColor: 'white',
     margin: 20,
     borderRadius: 12,
     padding: 20,
@@ -209,7 +317,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
   },
   dateButton: {
     marginBottom: 16,
@@ -222,7 +329,6 @@ const styles = StyleSheet.create({
   categoryChip: {
     margin: 4,
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -233,10 +339,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cancelButton: {
-    borderColor: '#666',
+    // borderColor será aplicado dinamicamente
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    // backgroundColor será aplicado pelo tema do Paper
   },
 });
 

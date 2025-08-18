@@ -6,10 +6,11 @@ import { useTheme } from '../context/ThemeContext';
 import { Transaction, Category } from '../types';
 
 import TransactionItem from '../components/TransactionItem';
-import { getTransactions, deleteTransaction, getCategories } from '../database/database';
+import AddTransactionModal from '../components/AddTransactionModal';
+import { getTransactions, updateTransaction, deleteTransaction, getCategories } from '../database/database';
 
 const TransactionsScreen: React.FC = () => {
-  const { colors } = useTheme();
+  const { colors, dark: isDarkMode } = useTheme();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -17,6 +18,8 @@ const TransactionsScreen: React.FC = () => {
   const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
     loadData();
@@ -62,6 +65,17 @@ const TransactionsScreen: React.FC = () => {
     setFilteredTransactions(filtered);
   };
 
+  const handleUpdateTransaction = async (id: number, transaction: Omit<Transaction, 'id'>): Promise<void> => {
+    try {
+      await updateTransaction(id, transaction);
+      await loadData();
+      setModalVisible(false);
+      setEditingTransaction(null);
+    } catch (error) {
+      console.error('Erro ao atualizar transação:', error);
+    }
+  };
+
   const handleDeleteTransaction = async (id: number): Promise<void> => {
     try {
       await deleteTransaction(id);
@@ -69,6 +83,11 @@ const TransactionsScreen: React.FC = () => {
     } catch (error) {
       console.error('Erro ao deletar transação:', error);
     }
+  };
+
+  const openEditModal = (transaction: Transaction): void => {
+    setEditingTransaction(transaction);
+    setModalVisible(true);
   };
 
   const getCategoryName = (categoryId: number): string => {
@@ -102,19 +121,56 @@ const TransactionsScreen: React.FC = () => {
           value={selectedType}
           onValueChange={setSelectedType}
           buttons={[
-            { value: 'all', label: 'Todas' },
-            { value: 'income', label: 'Receitas' },
-            { value: 'expense', label: 'Despesas' }
+            { 
+              value: 'all', 
+              label: 'Todas',
+              style: { 
+                backgroundColor: selectedType === 'all' ? '#FF9800' : 'transparent'
+              }
+            },
+            { 
+              value: 'income', 
+              label: 'Receitas',
+              style: { 
+                backgroundColor: selectedType === 'income' ? '#FF9800' : 'transparent'
+              }
+            },
+            { 
+              value: 'expense', 
+              label: 'Despesas',
+              style: { 
+                backgroundColor: selectedType === 'expense' ? '#FF9800' : 'transparent'
+              }
+            }
           ]}
           style={styles.segmentedButtons}
+          theme={{
+            colors: {
+              primary: '#FF9800',
+              onSurface: isDarkMode ? '#FFFFFF' : '#000000',
+              onSurfaceVariant: isDarkMode ? '#FFFFFF' : '#666666',
+              onPrimary: '#FF9800',
+              surface: colors.surface,
+              surfaceVariant: colors.surface,
+              outline: colors.border,
+            }
+          }}
         />
 
         <View style={styles.categoriesContainer}>
           <Chip
             selected={selectedCategory === 'all'}
             onPress={() => setSelectedCategory('all')}
-            style={[styles.categoryChip, { backgroundColor: colors.surface }]}
-            textStyle={{ color: colors.text }}
+            style={[
+              styles.categoryChip, 
+              { 
+                backgroundColor: selectedCategory === 'all' ? '#FF9800' : colors.surface,
+                borderColor: selectedCategory === 'all' ? '#FF9800' : colors.border
+              }
+            ]}
+            textStyle={{ 
+              color: selectedCategory === 'all' ? '#FFFFFF' : colors.text 
+            }}
           >
             Todas as categorias
           </Chip>
@@ -132,11 +188,13 @@ const TransactionsScreen: React.FC = () => {
                 style={[
                   styles.categoryChip,
                   { 
-                    borderColor: category.color,
-                    backgroundColor: colors.surface
+                    backgroundColor: selectedCategory === category.id.toString() ? '#FF9800' : colors.surface,
+                    borderColor: selectedCategory === category.id.toString() ? '#FF9800' : category.color
                   }
                 ]}
-                textStyle={{ color: colors.text }}
+                textStyle={{ 
+                  color: selectedCategory === category.id.toString() ? '#FFFFFF' : colors.text 
+                }}
               >
                 {category.name}
               </Chip>
@@ -168,6 +226,7 @@ const TransactionsScreen: React.FC = () => {
           <TransactionItem
             transaction={item}
             onDelete={handleDeleteTransaction}
+            onEdit={openEditModal}
           />
         )}
         ListEmptyComponent={
@@ -187,6 +246,18 @@ const TransactionsScreen: React.FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
+      />
+
+      <AddTransactionModal
+        visible={modalVisible}
+        onDismiss={() => {
+          setModalVisible(false);
+          setEditingTransaction(null);
+        }}
+        onSave={() => {}} // Não usado nesta tela
+        onUpdate={handleUpdateTransaction}
+        type={editingTransaction?.type || 'expense'}
+        editingTransaction={editingTransaction}
       />
     </SafeAreaView>
   );

@@ -30,12 +30,12 @@
 - **Cores**: Identificação visual
 - **Editar/Excluir**: Gerenciamento completo
 
-### 6. Exportar Dados
+### 6. Exportar/Importar Dados
 - **Formato JSON**: Estrutura completa
-- **Download direto**: Salva na pasta Downloads
+- **Salvar JSON**: Salva na pasta Downloads
+- **Importar JSON**: Restaura dados de backup
 - **Backup completo**: Categorias e transações
 - **Compartilhamento**: Via apps nativos
-- **Cópia para área de transferência**
 
 ## 📊 Estrutura do JSON Exportado
 
@@ -78,19 +78,34 @@
 }
 ```
 
-## 🔄 Como Usar a Exportação
+## 🔄 Como Usar a Exportação/Importação
 
+### Exportar Dados
 1. **Acesse Configurações** → Seção "Dados"
 2. **Toque em "Exportar Dados"**
 3. **Escolha a opção**:
-   - **Download JSON**: Salva arquivo .json na pasta Downloads
-   - **Copiar JSON**: Copia para área de transferência
+   - **Salvar JSON**: Salva arquivo .json na pasta Downloads
    - **Compartilhar**: Abre menu de compartilhamento
 4. **Após o download**:
-   - **Compartilhar Arquivo**: Envia o arquivo via apps
-   - **Ver no Gerenciador**: Abre o arquivo com apps nativos
+   - **Compartilhar Arquivo**: Envia o arquivo .json via apps
+   - **Abrir Gerenciador**: Mostra localização e tenta abrir diretório
 5. **Salve o arquivo** em local seguro
-6. **Use para backup** ou migração
+
+### Importar Dados
+1. **Acesse Configurações** → Seção "Dados"
+2. **Toque em "Importar Dados"**
+3. **Escolha a opção**:
+   - **Selecionar Arquivo**: Escolhe arquivo .json do dispositivo
+   - **Colar JSON**: Cole o JSON no campo de texto
+4. **Confirme a importação** (substituirá dados atuais)
+5. **Aguarde a conclusão** da importação
+
+### ⚠️ Importante
+- **Backup antes de importar**: Faça backup dos dados atuais
+- **Formato JSON válido**: Use apenas arquivos exportados pelo app
+- **Substituição total**: Importação substitui todos os dados existentes
+- **Tipos suportados**: Arquivos .json ou texto JSON válido
+- **Origem segura**: Use apenas arquivos de fontes confiáveis
 
 ## 💡 Dicas de Uso
 

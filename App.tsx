@@ -10,7 +10,6 @@ import HomeScreen from './src/screens/HomeScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
 import StatsScreen from './src/screens/StatsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import SplashScreen from './src/screens/SplashScreen';
 
 type TabParamList = {
   Home: undefined;
@@ -23,7 +22,6 @@ const Tab = createBottomTabNavigator<TabParamList>();
 
 const AppContent: React.FC = () => {
   const { colors, dark: isDarkMode } = useTheme();
-  const [showSplash, setShowSplash] = React.useState<boolean>(true);
 
   const paperTheme = {
     colors: {
@@ -33,6 +31,8 @@ const AppContent: React.FC = () => {
       surface: colors.surface,
       text: colors.text,
       placeholder: colors.placeholder,
+      onSurface: colors.text,
+      onPrimary: colors.text,
     },
     dark: isDarkMode,
     elevation: {
@@ -44,14 +44,6 @@ const AppContent: React.FC = () => {
       level5: '0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 5px 0px rgba(0, 0, 0, 0.30)',
     }
   };
-
-  const handleSplashFinish = (): void => {
-    setShowSplash(false);
-  };
-
-  if (showSplash) {
-    return <SplashScreen onFinish={handleSplashFinish} />;
-  }
 
   return (
     <PaperProvider theme={paperTheme}>

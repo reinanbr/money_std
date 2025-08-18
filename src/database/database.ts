@@ -54,6 +54,18 @@ export const initDatabase = (): Promise<void> => {
           FOREIGN KEY (category_id) REFERENCES categories (id)
         );`
       );
+
+      // Tabela para histórico de saldo
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS balance_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          total_balance REAL NOT NULL,
+          income REAL NOT NULL,
+          expense REAL NOT NULL,
+          date TEXT NOT NULL,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );`
+      );
     }, reject, resolve);
   });
 };
@@ -86,8 +98,15 @@ export const addTransaction = (transaction: Omit<Transaction, 'id'>): Promise<nu
       tx.executeSql(
         'INSERT INTO transactions (description, amount, type, category_id, date) VALUES (?, ?, ?, ?, ?)',
         [transaction.description, transaction.amount, transaction.type, transaction.category_id, transaction.date],
-        (_, { insertId }) => {
-          resolve(insertId || 0);
+        async (_, { insertId }) => {
+          try {
+            // Salvar histórico de saldo após adicionar transação
+            const balance = await getBalance();
+            await saveBalanceHistory(balance);
+            resolve(insertId || 0);
+          } catch (error) {
+            reject(error);
+          }
         },
         (_, error) => {
           reject(error);
@@ -143,6 +162,31 @@ export const getTransactions = (filters: TransactionFilters = {}): Promise<Trans
         reject(error);
         return false;
       });
+    });
+  });
+};
+
+export const updateTransaction = (id: number, transaction: Omit<Transaction, 'id'>): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'UPDATE transactions SET description = ?, amount = ?, type = ?, category_id = ?, date = ? WHERE id = ?',
+        [transaction.description, transaction.amount, transaction.type, transaction.category_id, transaction.date, id],
+        async (_, { rowsAffected }) => {
+          try {
+            // Salvar histórico de saldo após atualizar transação
+            const balance = await getBalance();
+            await saveBalanceHistory(balance);
+            resolve(rowsAffected);
+          } catch (error) {
+            reject(error);
+          }
+        },
+        (_, error) => {
+          reject(error);
+          return false;
+        }
+      );
     });
   });
 };
@@ -348,6 +392,76 @@ export const importDataFromJSON = async (jsonData: string): Promise<boolean> => 
     } catch (error) {
       reject(error);
     }
+  });
+};
+
+// Função para salvar o histórico de saldo
+export const saveBalanceHistory = (balance: Balance): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    db.transaction(tx => {
+      // Verificar se já existe um registro para hoje
+      tx.executeSql(
+        'SELECT id FROM balance_history WHERE date = ?',
+        [today],
+        (_, { rows }) => {
+          if (rows.length > 0) {
+            // Atualizar registro existente
+            tx.executeSql(
+              'UPDATE balance_history SET total_balance = ?, income = ?, expense = ? WHERE date = ?',
+              [balance.total, balance.income, balance.expense, today],
+              () => resolve(),
+              (_, error) => {
+                reject(error);
+                return false;
+              }
+            );
+          } else {
+            // Inserir novo registro
+            tx.executeSql(
+              'INSERT INTO balance_history (total_balance, income, expense, date) VALUES (?, ?, ?, ?)',
+              [balance.total, balance.income, balance.expense, today],
+              () => resolve(),
+              (_, error) => {
+                reject(error);
+                return false;
+              }
+            );
+          }
+        },
+        (_, error) => {
+          reject(error);
+          return false;
+        }
+      );
+    });
+  });
+};
+
+// Função para obter o histórico de saldo por período
+export const getBalanceHistory = (days: number): Promise<{ date: string; total: number; income: number; expense: number }[]> => {
+  return new Promise((resolve, reject) => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    db.transaction(tx => {
+      tx.executeSql(
+        `SELECT date, total_balance as total, income, expense 
+         FROM balance_history 
+         WHERE date BETWEEN ? AND ? 
+         ORDER BY date ASC`,
+        [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]],
+        (_, { rows }) => {
+          resolve(rows._array);
+        },
+        (_, error) => {
+          reject(error);
+          return false;
+        }
+      );
+    });
   });
 };
 

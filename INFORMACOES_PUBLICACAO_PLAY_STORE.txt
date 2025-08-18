@@ -1,0 +1,170 @@
+===========================================
+INFORMAÇÕES PARA PUBLICAÇÃO NA PLAY STORE
+===========================================
+
+📱 APP: Money STD
+📦 Package Name: com.reysofts.moneystd
+👤 Desenvolvedor: eyke912 (EAS Account)
+📅 Data de Geração: 18/08/2024
+
+===========================================
+ARQUIVOS GERADOS
+===========================================
+
+📄 AAB (Android App Bundle):
+- Arquivo: money-std-production.aab
+- Tamanho: 31.6 MB (33,157,007 bytes)
+- URL de Download: https://expo.dev/artifacts/eas/4CrWRBH1xEawueMVTtGruC.aab
+- Build ID: 1d622e6d-6c2d-48d0-bf7d-59b70e699d90
+
+📱 APK (Android Package):
+- Arquivo: money-std-latest.apk (MAIS RECENTE)
+- Tamanho: 30.0 MB (31,534,010 bytes)
+- URL de Download: https://expo.dev/artifacts/eas/7t3kh1NcZ2ViA6LrD9Nbs5.apk
+- Build ID: 345d59e2-50c8-4015-833c-363405e2a460
+- Perfil: Preview (para testes)
+- Data: 18/08/2025 06:12:42 AM
+
+📱 APK (Android Package) - Anterior:
+- Arquivo: money-std-preview.apk
+- Tamanho: 30.0 MB (31,534,078 bytes)
+- URL de Download: https://expo.dev/artifacts/eas/jh58mGDmqH9TxmuuA7WPLX.apk
+- Build ID: 9402f080-4692-4fc0-a434-3460ed4790db
+- Perfil: Preview (para testes)
+
+🔑 KEYSTORE (Assinatura Digital):
+- Arquivo: @eyke912__money-std.jks
+- Tamanho: 2.2 KB (2,196 bytes)
+- Tipo: JKS (Java KeyStore)
+- Configuração: Uz7i3CaBqh (Default)
+
+===========================================
+INFORMAÇÕES DA KEYSTORE
+===========================================
+
+🔐 SENHAS (MANTENHA EM SEGURANÇA):
+- Keystore Password: b7f788db5aaae901ed48314c406ba65d
+- Key Alias: f6f8d81855e90fd1d881c8985f427c94
+- Key Password: 5e4fdaaba38b5786cdbefa1484aa6b9b
+
+📋 IMPRESSÕES DIGITAIS:
+- MD5 Fingerprint: 55:9D:2D:9B:C1:66:21:74:C0:C2:F0:88:7F:FC:99:A7
+- SHA1 Fingerprint: 90:FD:E8:14:C3:C8:26:D4:4A:95:5E:48:9B:D9:6F:A4:99:9C:B5:4F
+- SHA256 Fingerprint: 33:6E:BE:F5:FD:64:9D:97:22:94:4D:F7:8B:EA:44:4B:E5:13:D7:48:79:1B:A8:D6:0E:8D:21:39:ED:A2:5A:45
+
+===========================================
+CONFIGURAÇÕES DO APP
+===========================================
+
+📱 Informações Básicas:
+- Nome: Money STD
+- Slug: money-std
+- Versão: 1.0.0
+- Orientação: Portrait
+- Interface: Automatic (Light/Dark)
+
+🔧 Permissões Android:
+- WRITE_EXTERNAL_STORAGE
+- READ_EXTERNAL_STORAGE
+
+📊 EAS Project ID: 6381fca2-5cf0-473f-9829-bf3d6ab24f1f
+
+===========================================
+PASSOS PARA PUBLICAÇÃO
+===========================================
+
+1. 📋 Acesse o Google Play Console
+   - URL: https://play.google.com/console
+
+2. 📱 Crie um novo app
+   - Package name: com.reysofts.moneystd
+   - Nome: Money STD
+
+3. 📦 Faça upload do AAB
+   - Use o arquivo: money-std-production.aab
+   - Tamanho: 31.6 MB
+
+4. 🔑 Configure a assinatura
+   - Use as informações da keystore acima
+   - Guarde as senhas em local seguro
+
+5. 📝 Preencha as informações do app
+   - Descrição
+   - Screenshots
+   - Categoria
+   - Classificação etária
+
+6. ✅ Publique na Play Store
+
+===========================================
+COMO USAR O APK
+===========================================
+
+📱 Para instalar o APK em dispositivos Android:
+
+1. **Habilitar instalação de fontes desconhecidas:**
+   - Configurações > Segurança > Fontes desconhecidas
+   - Ou Configurações > Apps > Instalar apps desconhecidos
+
+2. **Transferir o APK:**
+   - Copie o arquivo: money-std-latest.apk (recomendado)
+   - Ou use: money-std-preview.apk
+   - Transfira para o dispositivo Android
+
+3. **Instalar:**
+   - Abra o arquivo APK no dispositivo
+   - Siga as instruções de instalação
+
+⚠️ **Nota:** O APK é para testes. Para publicação na Play Store, use o AAB.
+
+===========================================
+IMPORTANTE - SEGURANÇA
+===========================================
+
+⚠️ ATENÇÃO:
+- Mantenha as senhas da keystore em local seguro
+- Faça backup dos arquivos .jks e credentials.json
+- Não compartilhe as senhas publicamente
+- Sem essas informações, não será possível atualizar o app
+
+🔒 BACKUP RECOMENDADO:
+- Keystore: @eyke912__money-std.jks
+- Credentials: credentials.json
+- AAB: money-std-production.aab
+- APK: money-std-latest.apk (mais recente)
+- APK: money-std-preview.apk (anterior)
+
+===========================================
+COMANDOS ÚTEIS
+===========================================
+
+🔄 Para gerar novo AAB:
+eas build --platform android --profile production
+
+📱 Para gerar novo APK:
+eas build --platform android --profile preview
+
+📱 Para testar localmente:
+eas build --platform android --profile preview
+
+🔑 Para gerenciar credenciais:
+eas credentials
+
+===========================================
+CONTATO E SUPORTE
+===========================================
+
+👤 Desenvolvedor: eyke912
+📧 EAS Account: eyke912
+🌐 EAS Dashboard: https://expo.dev/accounts/eyke912/projects/money-std
+
+===========================================
+NOTAS FINAIS
+===========================================
+
+✅ AAB gerado com sucesso
+✅ Keystore configurado
+✅ Credenciais salvas
+✅ Pronto para publicação na Play Store
+
+📅 Última atualização: 18/08/2024 

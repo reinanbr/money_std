@@ -162,13 +162,13 @@ eas build --platform android --profile production
 > **Nota**: Adicione aqui os prints de tela do seu aplicativo:
 
 - 🏠 **Tela Principal**: Dashboard com saldo e transações recentes
-<img src='/screens/inicial.jpeg' width='200'/>
+<img src='/screens/inicial.jpeg' width='350'/>
 - 📊 **Estatísticas**: Gráficos de evolução e distribuição
-<img src='/screens/stats.jpeg' width='200'/>
+<img src='/screens/stats.jpeg' width='350'/>
 - 📋 **Transações**: Lista com filtros por tipo e categoria
-<img src='/screens/trans.jpeg' width='200'/>
+<img src='/screens/trans.jpeg' width='350'/>
 - ⚙️ **Configurações**: Gerenciamento de categorias e exportação
-<img src='/screens/conf.jpeg' width='200'/>
+<img src='/screens/conf.jpeg' width='350'/>
 
 ## 🗄️ Banco de Dados
 

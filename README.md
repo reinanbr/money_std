@@ -162,10 +162,13 @@ eas build --platform android --profile production
 > **Nota**: Adicione aqui os prints de tela do seu aplicativo:
 
 - 🏠 **Tela Principal**: Dashboard com saldo e transações recentes
+<img src='/screens/inicial.jpeg' width='200'/>
 - 📊 **Estatísticas**: Gráficos de evolução e distribuição
+<img src='/screens/stats.jpeg' width='200'/>
 - 📋 **Transações**: Lista com filtros por tipo e categoria
+<img src='/screens/trans.jpeg' width='200'/>
 - ⚙️ **Configurações**: Gerenciamento de categorias e exportação
-- 🌓 **Tema Escuro**: Todas as telas com suporte a dark mode
+<img src='/screens/conf.jpeg' width='200'/>
 
 ## 🗄️ Banco de Dados
 
@@ -215,14 +218,5 @@ O app utiliza SQLite local com as seguintes tabelas:
 
 Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
-## 💬 Suporte
-
-Para dúvidas ou suporte:
-
-- �� Email: [seu-email@exemplo.com]
-- 🐛 Issues: [GitHub Issues](repository-url/issues)
-- 📖 Documentação: [Wiki do projeto](repository-url/wiki)
-
----
 
 **Desenvolvido com ❤️ usando React Native + TypeScript** 

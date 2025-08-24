@@ -2,9 +2,9 @@
   "expo": {
     "name": "Money STD",
     "slug": "money-std",
-    "version": "1.0.0",
+    "version": "1.0.6",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon_.png",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
@@ -24,11 +24,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon_.png",
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.reysofts.moneystd",
-      "versionCode": 1,
+      "versionCode": 6,
       "permissions": [
         "WRITE_EXTERNAL_STORAGE",
         "READ_EXTERNAL_STORAGE"
@@ -41,6 +41,9 @@
       "eas": {
         "projectId": "6381fca2-5cf0-473f-9829-bf3d6ab24f1f"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

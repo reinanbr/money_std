@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cores Principais - Exatamente iguais ao React Native -->
+    <color name="primary">#007AFF</color>
+    <color name="accent">#FF6B6B</color>
+    
+    <!-- Cores de Fundo Light Mode -->
+    <color name="background_light">#F5F5F5</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="card_light">#FFFFFF</color>
+    
+    <!-- Cores de Fundo Dark Mode -->
+    <color name="background_dark">#121212</color>
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="card_dark">#2D2D2D</color>
+
+    <!-- Cores de Texto Light Mode -->
+    <color name="text_light">#333333</color>
+    <color name="text_secondary_light">#666666</color>
+    <color name="placeholder_light">#999999</color>
+    <color name="border_light">#E0E0E0</color>
+
+    <!-- Cores de Texto Dark Mode -->
+    <color name="text_dark">#FFFFFF</color>
+    <color name="text_secondary_dark">#B0B0B0</color>
+    <color name="placeholder_dark">#666666</color>
+    <color name="border_dark">#404040</color>
+
+    <!-- Cores de Status Light Mode -->
+    <color name="success_light">#2ECC71</color>
+    <color name="error_light">#E74C3C</color>
+    <color name="warning_light">#F39C12</color>
+    <color name="info_light">#3498DB</color>
+    
+    <!-- Cores de Status Dark Mode -->
+    <color name="success_dark">#4CAF50</color>
+    <color name="error_dark">#F44336</color>
+    <color name="warning_dark">#FF9800</color>
+    <color name="info_dark">#2196F3</color>
+
+    <!-- Cores Sistema -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    
+    <!-- Alias para compatibilidade -->
+    <color name="success">@color/success_light</color>
+    <color name="error">@color/error_light</color>
+    <color name="warning">@color/warning_light</color>
+    <color name="info">@color/info_light</color>
+</resources>

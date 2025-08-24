@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Espaçamentos principais - Exatamente iguais ao React Native -->
+    
+    <!-- Card Principal (BalanceCard) -->
+    <dimen name="balance_card_margin">16dp</dimen>
+    <dimen name="balance_card_padding_horizontal">8dp</dimen>
+    <dimen name="balance_card_padding_vertical">24dp</dimen>
+    <dimen name="balance_card_radius">12dp</dimen>
+    <dimen name="balance_card_elevation">4dp</dimen>
+    
+    <!-- Título do Card -->
+    <dimen name="balance_title_margin_bottom">2dp</dimen>
+    <dimen name="balance_title_size">18sp</dimen>
+    
+    <!-- Valor Principal -->
+    <dimen name="balance_value_size">30sp</dimen>
+    <dimen name="balance_value_margin_top">0dp</dimen>
+    <dimen name="balance_value_margin_bottom">16dp</dimen>
+    <dimen name="balance_value_padding_horizontal">8dp</dimen>
+    <dimen name="balance_value_padding_vertical">18dp</dimen>
+    
+    <!-- Resumo (Receitas/Despesas) -->
+    <dimen name="summary_label_size">14sp</dimen>
+    <dimen name="summary_label_margin_bottom">4dp</dimen>
+    <dimen name="summary_value_size">16sp</dimen>
+    
+    <!-- Item de Transação -->
+    <dimen name="transaction_item_margin_horizontal">16dp</dimen>
+    <dimen name="transaction_item_margin_vertical">4dp</dimen>
+    <dimen name="transaction_item_elevation">2dp</dimen>
+    <dimen name="transaction_item_radius">8dp</dimen>
+    <dimen name="transaction_item_padding_horizontal">16dp</dimen>
+    <dimen name="transaction_item_padding_vertical">8dp</dimen>
+    
+    <!-- Indicador de Categoria -->
+    <dimen name="category_indicator_width">4dp</dimen>
+    <dimen name="category_indicator_height">40dp</dimen>
+    <dimen name="category_indicator_radius">2dp</dimen>
+    <dimen name="category_indicator_margin_end">12dp</dimen>
+    
+    <!-- Textos do Item -->
+    <dimen name="transaction_description_size">16sp</dimen>
+    <dimen name="transaction_description_margin_bottom">2dp</dimen>
+    <dimen name="transaction_category_size">14sp</dimen>
+    <dimen name="transaction_category_margin_bottom">2dp</dimen>
+    <dimen name="transaction_date_size">12sp</dimen>
+    <dimen name="transaction_amount_size">16sp</dimen>
+    <dimen name="transaction_amount_margin_bottom">4dp</dimen>
+    
+    <!-- Botões de Ação -->
+    <dimen name="action_button_size">32dp</dimen>
+    
+    <!-- Bottom Navigation -->
+    <dimen name="bottom_nav_height">60dp</dimen>
+    <dimen name="bottom_nav_padding_top">5dp</dimen>
+    <dimen name="bottom_nav_padding_bottom">5dp</dimen>
+    <dimen name="bottom_nav_elevation">8dp</dimen>
+    
+    <!-- FAB -->
+    <dimen name="fab_margin">16dp</dimen>
+    
+    <!-- Splash Screen -->
+    <dimen name="splash_logo_size">120dp</dimen>
+    <dimen name="splash_title_size">28sp</dimen>
+    <dimen name="splash_subtitle_size">16sp</dimen>
+    <dimen name="splash_title_margin_top">24dp</dimen>
+    <dimen name="splash_subtitle_margin_top">8dp</dimen>
+    <dimen name="splash_loading_margin_bottom">48dp</dimen>
+    
+    <!-- Geral -->
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="radius_small">4dp</dimen>
+    <dimen name="radius_medium">8dp</dimen>
+    <dimen name="radius_large">12dp</dimen>
+    
+</resources>

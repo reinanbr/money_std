@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Money STD</string>
+    <string name="app_subtitle">Controle Financeiro Pessoal</string>
+    
+    <!-- Navigation -->
+    <string name="title_home">Início</string>
+    <string name="title_transactions">Transações</string>
+    <string name="title_stats">Estatísticas</string>
+    <string name="title_settings">Configurações</string>
+    
+    <!-- Home Screen -->
+    <string name="balance_title">Saldo Total</string>
+    <string name="income_title">Receitas</string>
+    <string name="expense_title">Despesas</string>
+    <string name="recent_transactions">Transações Recentes</string>
+    <string name="add_transaction">Adicionar Transação</string>
+    
+    <!-- Transactions -->
+    <string name="all_transactions">Todas</string>
+    <string name="income_transactions">Receitas</string>
+    <string name="expense_transactions">Despesas</string>
+    <string name="no_transactions">Nenhuma transação encontrada</string>
+    
+    <!-- Common -->
+    <string name="save">Salvar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="delete">Excluir</string>
+    <string name="edit">Editar</string>
+    <string name="description">Descrição</string>
+    <string name="amount">Valor</string>
+    <string name="category">Categoria</string>
+    <string name="date">Data</string>
+    <string name="currency_symbol">R$</string>
+</resources>

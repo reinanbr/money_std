@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cores para Dark Mode - Sobrescreve as cores quando em modo escuro -->
+    <color name="background_light">@color/background_dark</color>
+    <color name="surface_light">@color/surface_dark</color>
+    <color name="card_light">@color/card_dark</color>
+    <color name="text_light">@color/text_dark</color>
+    <color name="text_secondary_light">@color/text_secondary_dark</color>
+    <color name="placeholder_light">@color/placeholder_dark</color>
+    <color name="border_light">@color/border_dark</color>
+    <color name="success_light">@color/success_dark</color>
+    <color name="error_light">@color/error_dark</color>
+    <color name="warning_light">@color/warning_dark</color>
+    <color name="info_light">@color/info_dark</color>
+</resources>

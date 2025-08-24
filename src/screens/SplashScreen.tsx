@@ -1,10 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Dimensions } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-
-const { width, height } = Dimensions.get('window');
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -12,64 +10,19 @@ interface SplashScreenProps {
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   const { colors } = useTheme();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.3)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const loadingAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const animations = [
-      // Fade in
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      // Scale up
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      // Slide up
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ];
+    // Simples timeout sem animações
+    const timer = setTimeout(() => {
+      onFinish();
+    }, 2000); // 2 segundos simples
 
-    Animated.parallel(animations).start(() => {
-      // Inicia animação de loading
-      Animated.loop(
-        Animated.timing(loadingAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        })
-      ).start();
-      
-      // Após a animação, aguarda um pouco e chama onFinish
-      setTimeout(() => {
-        onFinish();
-      }, 2000);
-    });
-  }, []);
+    return () => clearTimeout(timer);
+  }, [onFinish]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Animated.View
-        style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [
-              { scale: scaleAnim },
-              { translateY: slideAnim }
-            ],
-          },
-        ]}
-      >
+      <View style={styles.content}>
         {/* Ícone do App */}
         <View style={[styles.iconContainer, { backgroundColor: colors.primary }]}>
           <MaterialCommunityIcons
@@ -95,34 +48,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           Controle Financeiro Pessoal
         </Text>
-
-        {/* Loading indicator */}
-        <View style={styles.loadingContainer}>
-          {[0, 1, 2].map((index) => (
-            <Animated.View
-              key={index}
-              style={[
-                styles.loadingDot,
-                {
-                  backgroundColor: colors.primary,
-                  opacity: loadingAnim.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: [0.3, 1, 0.3],
-                  }),
-                  transform: [
-                    {
-                      scale: loadingAnim.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0.8, 1.2, 0.8],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            />
-          ))}
-        </View>
-      </Animated.View>
+      </View>
     </View>
   );
 };
@@ -183,18 +109,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     textAlign: 'center',
   },
-  loadingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
-    opacity: 0.6,
-  },
 });
 
-export default SplashScreen; 
+export default SplashScreen;

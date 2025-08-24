@@ -10,6 +10,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
 import StatsScreen from './src/screens/StatsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import CustomStatusBar from './src/components/StatusBar';
 
 type TabParamList = {
   Home: undefined;
@@ -47,6 +48,7 @@ const AppContent: React.FC = () => {
 
   return (
     <PaperProvider theme={paperTheme}>
+      <CustomStatusBar backgroundColor={colors.surface} />
       <NavigationContainer
         theme={{
           dark: isDarkMode,
@@ -54,7 +56,7 @@ const AppContent: React.FC = () => {
             primary: colors.primary,
             background: colors.background,
             card: colors.surface,
-            text: colors.text,
+            text: isDarkMode ? colors.text : '#333333',
             border: colors.border,
             notification: colors.primary,
           },
@@ -80,7 +82,7 @@ const AppContent: React.FC = () => {
               return <MaterialCommunityIcons name={iconName as any} size={size} color={color} />;
             },
             tabBarActiveTintColor: colors.primary,
-            tabBarInactiveTintColor: colors.textSecondary,
+            tabBarInactiveTintColor: isDarkMode ? colors.textSecondary : '#666666',
             tabBarStyle: {
               backgroundColor: colors.surface,
               borderTopWidth: 1,
@@ -88,13 +90,26 @@ const AppContent: React.FC = () => {
               paddingBottom: 5,
               paddingTop: 5,
               height: 60,
+              elevation: 8,
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: -2,
+              },
+              shadowOpacity: isDarkMode ? 0.3 : 0.1,
+              shadowRadius: 4,
             },
             headerStyle: {
-              backgroundColor: colors.primary,
+              backgroundColor: colors.surface,
+              elevation: 0,
+              shadowOpacity: 0,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
             },
-            headerTintColor: '#ffffff',
+            headerTintColor: colors.text,
             headerTitleStyle: {
               fontWeight: 'bold',
+              color: colors.text,
             },
           })}
         >

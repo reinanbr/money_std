@@ -119,7 +119,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   };
 
   const formatCurrency = (value: string): string => {
-    return value.replace(/[^\d,]/g, '').replace(',', '.');
+    return value.replace(' ', '').replace(',', '.');
   };
 
   const onDateChange = (event: any, selectedDate?: Date): void => {

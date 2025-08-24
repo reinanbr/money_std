@@ -1,0 +1,26 @@
+# Arquivos desnecessários para o build
+*.apk
+*.aab
+*.jks
+credentials/
+scripts/build.sh
+COMANDOS_RAPIDOS.md
+CRIAR_ASSETS.md
+EXEMPLO_USO.md
+INFORMACOES_PUBLICACAO_PLAY_STORE.txt
+README_PUBLICACAO.md
+README.md
+RESUMO_FINAL.md
+SOLUCAO_PROBLEMAS.md
+TESTE_BUILD.md
+assets/README*.md
+assets/ASSETS_CRIADOS.md
+
+# Arquivos de desenvolvimento
+.git/
+node_modules/
+.expo/
+.vscode/
+__tests__/
+*.log
+*.tmp

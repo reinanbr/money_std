@@ -1,120 +1,113 @@
 import * as SQLite from 'expo-sqlite';
 import { Transaction, Category, Balance } from '../types';
 
-const db = SQLite.openDatabase('money_std.db');
+// Atualizada para nova API do expo-sqlite
+const db = SQLite.openDatabaseSync('money_std.db');
 
-export const initDatabase = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      // Tabela para categorias
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS categories (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          type TEXT NOT NULL,
-          color TEXT DEFAULT '#007AFF'
-        );`,
-        [],
-        () => {
-          // Inserir categorias padrão
-          tx.executeSql(
-            `INSERT OR IGNORE INTO categories (name, type, color) VALUES 
-            ('Alimentação', 'expense', '#FF6B6B'),
-            ('Transporte', 'expense', '#4ECDC4'),
-            ('Moradia', 'expense', '#45B7D1'),
-            ('Saúde', 'expense', '#96CEB4'),
-            ('Educação', 'expense', '#FFEAA7'),
-            ('Lazer', 'expense', '#DDA0DD'),
-            ('Salário', 'income', '#2ECC71'),
-            ('Freelance', 'income', '#F39C12'),
-            ('Investimentos', 'income', '#9B59B6'),
-            ('Outros', 'expense', '#95A5A6');`
-          );
-          
-          // Limpar categorias duplicadas existentes
-          tx.executeSql(
-            `DELETE FROM categories WHERE id NOT IN (
-              SELECT MIN(id) FROM categories 
-              GROUP BY name, type
-            );`
-          );
-        }
+export const initDatabase = async (): Promise<void> => {
+  try {
+    // Tabela para categorias
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        color TEXT DEFAULT '#007AFF'
       );
+    `);
 
-      // Tabela para transações
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS transactions (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          description TEXT NOT NULL,
-          amount REAL NOT NULL,
-          type TEXT NOT NULL,
-          category_id INTEGER,
-          date TEXT NOT NULL,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (category_id) REFERENCES categories (id)
-        );`
-      );
+    // Inserir categorias padrão
+    await db.execAsync(`
+      INSERT OR IGNORE INTO categories (name, type, color) VALUES 
+      ('Alimentação', 'expense', '#FF6B6B'),
+      ('Transporte', 'expense', '#4ECDC4'),
+      ('Moradia', 'expense', '#45B7D1'),
+      ('Saúde', 'expense', '#96CEB4'),
+      ('Educação', 'expense', '#FFEAA7'),
+      ('Lazer', 'expense', '#DDA0DD'),
+      ('Salário', 'income', '#2ECC71'),
+      ('Freelance', 'income', '#F39C12'),
+      ('Investimentos', 'income', '#9B59B6'),
+      ('Outros', 'expense', '#95A5A6');
+    `);
 
-      // Tabela para histórico de saldo
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS balance_history (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          total_balance REAL NOT NULL,
-          income REAL NOT NULL,
-          expense REAL NOT NULL,
-          date TEXT NOT NULL,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        );`
+    // Limpar categorias duplicadas existentes
+    await db.execAsync(`
+      DELETE FROM categories WHERE id NOT IN (
+        SELECT MIN(id) FROM categories 
+        GROUP BY name, type
       );
-    }, reject, resolve);
-  });
+    `);
+
+    // Tabela para transações
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        description TEXT NOT NULL,
+        amount REAL NOT NULL,
+        type TEXT NOT NULL,
+        category_id INTEGER,
+        date TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories (id)
+      );
+    `);
+
+    // Tabela para histórico de saldo
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS balance_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        total_balance REAL NOT NULL,
+        income REAL NOT NULL,
+        expense REAL NOT NULL,
+        date TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch (error) {
+    console.error('Erro ao inicializar banco de dados:', error);
+    throw error;
+  }
 };
 
-export const getCategories = (type?: 'income' | 'expense' | null): Promise<Category[]> => {
-  return new Promise((resolve, reject) => {
+export const getCategories = async (type?: 'income' | 'expense' | null): Promise<Category[]> => {
+  try {
     const query = type 
       ? 'SELECT DISTINCT * FROM categories WHERE type = ? ORDER BY name'
       : 'SELECT DISTINCT * FROM categories ORDER BY type, name';
-    const params = type ? [type] : [];
     
-    db.transaction(tx => {
-      tx.executeSql(query, params, (_, { rows }) => {
-        // Remove duplicatas adicionais baseado no nome e tipo
-        const uniqueCategories = rows._array.filter((category, index, self) => 
-          index === self.findIndex(c => c.name === category.name && c.type === category.type)
-        );
-        resolve(uniqueCategories);
-      }, (_, error) => {
-        reject(error);
-        return false;
-      });
-    });
-  });
+    const result = type 
+      ? await db.getAllAsync(query, [type])
+      : await db.getAllAsync(query);
+    
+    // Remove duplicatas adicionais baseado no nome e tipo
+    const uniqueCategories = result.filter((category: any, index: number, self: any[]) => 
+      index === self.findIndex((c: any) => c.name === category.name && c.type === category.type)
+    );
+    
+    return uniqueCategories as Category[];
+  } catch (error) {
+    console.error('Erro ao buscar categorias:', error);
+    throw error;
+  }
 };
 
-export const addTransaction = (transaction: Omit<Transaction, 'id'>): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'INSERT INTO transactions (description, amount, type, category_id, date) VALUES (?, ?, ?, ?, ?)',
-        [transaction.description, transaction.amount, transaction.type, transaction.category_id, transaction.date],
-        async (_, { insertId }) => {
-          try {
-            // Salvar histórico de saldo após adicionar transação
-            const balance = await getBalance();
-            await saveBalanceHistory(balance);
-            resolve(insertId || 0);
-          } catch (error) {
-            reject(error);
-          }
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
-  });
+export const addTransaction = async (transaction: Omit<Transaction, 'id'>): Promise<number> => {
+  try {
+    const result = await db.runAsync(
+      'INSERT INTO transactions (description, amount, type, category_id, date) VALUES (?, ?, ?, ?, ?)',
+      [transaction.description, transaction.amount, transaction.type, transaction.category_id, transaction.date]
+    );
+    
+    // Salvar histórico de saldo após adicionar transação
+    const balance = await getBalance();
+    await saveBalanceHistory(balance);
+    
+    return result.lastInsertRowId;
+  } catch (error) {
+    console.error('Erro ao adicionar transação:', error);
+    throw error;
+  }
 };
 
 interface TransactionFilters {
@@ -124,8 +117,8 @@ interface TransactionFilters {
   end_date?: string;
 }
 
-export const getTransactions = (filters: TransactionFilters = {}): Promise<Transaction[]> => {
-  return new Promise((resolve, reject) => {
+export const getTransactions = async (filters: TransactionFilters = {}): Promise<Transaction[]> => {
+  try {
     let query = `
       SELECT t.*, c.name as category_name, c.color as category_color 
       FROM transactions t 
@@ -155,314 +148,200 @@ export const getTransactions = (filters: TransactionFilters = {}): Promise<Trans
 
     query += ' ORDER BY t.date DESC, t.created_at DESC';
 
-    db.transaction(tx => {
-      tx.executeSql(query, params, (_, { rows }) => {
-        resolve(rows._array);
-      }, (_, error) => {
-        reject(error);
-        return false;
-      });
-    });
-  });
+    const result = await db.getAllAsync(query, params);
+    return result as Transaction[];
+  } catch (error) {
+    console.error('Erro ao buscar transações:', error);
+    throw error;
+  }
 };
 
-export const updateTransaction = (id: number, transaction: Omit<Transaction, 'id'>): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'UPDATE transactions SET description = ?, amount = ?, type = ?, category_id = ?, date = ? WHERE id = ?',
-        [transaction.description, transaction.amount, transaction.type, transaction.category_id, transaction.date, id],
-        async (_, { rowsAffected }) => {
-          try {
-            // Salvar histórico de saldo após atualizar transação
-            const balance = await getBalance();
-            await saveBalanceHistory(balance);
-            resolve(rowsAffected);
-          } catch (error) {
-            reject(error);
-          }
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
-  });
+export const updateTransaction = async (id: number, transaction: Omit<Transaction, 'id'>): Promise<number> => {
+  try {
+    const result = await db.runAsync(
+      'UPDATE transactions SET description = ?, amount = ?, type = ?, category_id = ?, date = ? WHERE id = ?',
+      [transaction.description, transaction.amount, transaction.type, transaction.category_id, transaction.date, id]
+    );
+    
+    // Salvar histórico de saldo após atualizar transação
+    const balance = await getBalance();
+    await saveBalanceHistory(balance);
+    
+    return result.changes;
+  } catch (error) {
+    console.error('Erro ao atualizar transação:', error);
+    throw error;
+  }
 };
 
-export const deleteTransaction = (id: number): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'DELETE FROM transactions WHERE id = ?',
-        [id],
-        (_, { rowsAffected }) => {
-          resolve(rowsAffected);
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
-  });
+export const deleteTransaction = async (id: number): Promise<number> => {
+  try {
+    const result = await db.runAsync('DELETE FROM transactions WHERE id = ?', [id]);
+    return result.changes;
+  } catch (error) {
+    console.error('Erro ao deletar transação:', error);
+    throw error;
+  }
 };
 
-export const getBalance = (): Promise<Balance> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        `SELECT 
-          SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
-          SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense
-        FROM transactions`,
-        [],
-        (_, { rows }) => {
-          const result = rows._array[0];
-          const total = (result.total_income || 0) - (result.total_expense || 0);
-          resolve({
-            total,
-            income: result.total_income || 0,
-            expense: result.total_expense || 0
-          });
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
-  });
+export const getBalance = async (): Promise<Balance> => {
+  try {
+    const result = await db.getFirstAsync(`
+      SELECT 
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense
+      FROM transactions
+    `);
+    
+    const data = result as any;
+    const total = (data?.total_income || 0) - (data?.total_expense || 0);
+    
+    return {
+      total,
+      income: data?.total_income || 0,
+      expense: data?.total_expense || 0
+    };
+  } catch (error) {
+    console.error('Erro ao calcular saldo:', error);
+    throw error;
+  }
 };
 
-export const addCategory = (category: Omit<Category, 'id'>): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'INSERT INTO categories (name, type, color) VALUES (?, ?, ?)',
-        [category.name, category.type, category.color],
-        (_, { insertId }) => {
-          resolve(insertId || 0);
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
-  });
+export const addCategory = async (category: Omit<Category, 'id'>): Promise<number> => {
+  try {
+    const result = await db.runAsync(
+      'INSERT INTO categories (name, type, color) VALUES (?, ?, ?)',
+      [category.name, category.type, category.color]
+    );
+    return result.lastInsertRowId;
+  } catch (error) {
+    console.error('Erro ao adicionar categoria:', error);
+    throw error;
+  }
 };
 
-export const deleteCategory = (id: number): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      // Primeiro, atualiza transações que usam esta categoria para "Sem categoria"
-      tx.executeSql(
-        'UPDATE transactions SET category_id = NULL WHERE category_id = ?',
-        [id],
-        (_, { rowsAffected }) => {
-          // Depois, deleta a categoria
-          tx.executeSql(
-            'DELETE FROM categories WHERE id = ?',
-            [id],
-            (_, { rowsAffected: deleteRows }) => {
-              resolve(deleteRows);
-            },
-            (_, error) => {
-              reject(error);
-              return false;
-            }
-          );
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
-  });
+export const deleteCategory = async (id: number): Promise<number> => {
+  try {
+    // Primeiro, atualiza transações que usam esta categoria para "Sem categoria"
+    await db.runAsync('UPDATE transactions SET category_id = NULL WHERE category_id = ?', [id]);
+    
+    // Depois, deleta a categoria
+    const result = await db.runAsync('DELETE FROM categories WHERE id = ?', [id]);
+    return result.changes;
+  } catch (error) {
+    console.error('Erro ao deletar categoria:', error);
+    throw error;
+  }
 };
 
 export const exportDataAsJSON = async (): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      // Buscar todas as categorias
-      tx.executeSql(
-        'SELECT * FROM categories ORDER BY id',
-        [],
-        (_, categoriesResult) => {
-          // Buscar todas as transações
-          tx.executeSql(
-            'SELECT * FROM transactions ORDER BY id',
-            [],
-            (_, transactionsResult) => {
-              const exportData = {
-                version: '1.0.0',
-                exportDate: new Date().toISOString(),
-                categories: categoriesResult.rows._array,
-                transactions: transactionsResult.rows._array
-              };
-              
-              resolve(JSON.stringify(exportData, null, 2));
-            },
-            (_, error) => {
-              reject(error);
-              return false;
-            }
-          );
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
-  });
+  try {
+    // Buscar todas as categorias
+    const categories = await db.getAllAsync('SELECT * FROM categories ORDER BY id');
+    
+    // Buscar todas as transações
+    const transactions = await db.getAllAsync('SELECT * FROM transactions ORDER BY id');
+    
+    const exportData = {
+      version: '1.0.0',
+      exportDate: new Date().toISOString(),
+      categories,
+      transactions
+    };
+    
+    return JSON.stringify(exportData, null, 2);
+  } catch (error) {
+    console.error('Erro ao exportar dados:', error);
+    throw error;
+  }
 };
 
 export const importDataFromJSON = async (jsonData: string): Promise<boolean> => {
-  return new Promise((resolve, reject) => {
-    try {
-      const data = JSON.parse(jsonData);
-      
-      // Validar estrutura do JSON
-      if (!data.categories || !data.transactions) {
-        reject(new Error('Formato JSON inválido'));
-        return;
-      }
-      
-      db.transaction(tx => {
-        // Limpar dados existentes
-        tx.executeSql('DELETE FROM transactions', [], () => {
-          tx.executeSql('DELETE FROM categories', [], () => {
-            // Importar categorias
-            let categoriesImported = 0;
-            const totalCategories = data.categories.length;
-            
-            data.categories.forEach((category: any) => {
-              tx.executeSql(
-                'INSERT INTO categories (id, name, type, color) VALUES (?, ?, ?, ?)',
-                [category.id, category.name, category.type, category.color],
-                () => {
-                  categoriesImported++;
-                  if (categoriesImported === totalCategories) {
-                    // Importar transações
-                    let transactionsImported = 0;
-                    const totalTransactions = data.transactions.length;
-                    
-                    if (totalTransactions === 0) {
-                      resolve(true);
-                      return;
-                    }
-                    
-                    data.transactions.forEach((transaction: any) => {
-                      tx.executeSql(
-                        'INSERT INTO transactions (id, amount, description, category_id, type, date) VALUES (?, ?, ?, ?, ?, ?)',
-                        [transaction.id, transaction.amount, transaction.description, transaction.category_id, transaction.type, transaction.date],
-                        () => {
-                          transactionsImported++;
-                          if (transactionsImported === totalTransactions) {
-                            resolve(true);
-                          }
-                        },
-                        (_, error) => {
-                          reject(error);
-                          return false;
-                        }
-                      );
-                    });
-                  }
-                },
-                (_, error) => {
-                  reject(error);
-                  return false;
-                }
-              );
-            });
-          }, (_, error) => {
-            reject(error);
-            return false;
-          });
-        }, (_, error) => {
-          reject(error);
-          return false;
-        });
-      });
-    } catch (error) {
-      reject(error);
+  try {
+    const data = JSON.parse(jsonData);
+    
+    // Validar estrutura do JSON
+    if (!data.categories || !data.transactions) {
+      throw new Error('Formato JSON inválido');
     }
-  });
+    
+    // Limpar dados existentes
+    await db.execAsync('DELETE FROM transactions');
+    await db.execAsync('DELETE FROM categories');
+    
+    // Importar categorias
+    for (const category of data.categories) {
+      await db.runAsync(
+        'INSERT INTO categories (id, name, type, color) VALUES (?, ?, ?, ?)',
+        [category.id, category.name, category.type, category.color]
+      );
+    }
+    
+    // Importar transações
+    for (const transaction of data.transactions) {
+      await db.runAsync(
+        'INSERT INTO transactions (id, amount, description, category_id, type, date) VALUES (?, ?, ?, ?, ?, ?)',
+        [transaction.id, transaction.amount, transaction.description, transaction.category_id, transaction.type, transaction.date]
+      );
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao importar dados:', error);
+    throw error;
+  }
 };
 
 // Função para salvar o histórico de saldo
-export const saveBalanceHistory = (balance: Balance): Promise<void> => {
-  return new Promise((resolve, reject) => {
+export const saveBalanceHistory = async (balance: Balance): Promise<void> => {
+  try {
     const today = new Date().toISOString().split('T')[0];
     
-    db.transaction(tx => {
-      // Verificar se já existe um registro para hoje
-      tx.executeSql(
-        'SELECT id FROM balance_history WHERE date = ?',
-        [today],
-        (_, { rows }) => {
-          if (rows.length > 0) {
-            // Atualizar registro existente
-            tx.executeSql(
-              'UPDATE balance_history SET total_balance = ?, income = ?, expense = ? WHERE date = ?',
-              [balance.total, balance.income, balance.expense, today],
-              () => resolve(),
-              (_, error) => {
-                reject(error);
-                return false;
-              }
-            );
-          } else {
-            // Inserir novo registro
-            tx.executeSql(
-              'INSERT INTO balance_history (total_balance, income, expense, date) VALUES (?, ?, ?, ?)',
-              [balance.total, balance.income, balance.expense, today],
-              () => resolve(),
-              (_, error) => {
-                reject(error);
-                return false;
-              }
-            );
-          }
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
+    // Verificar se já existe um registro para hoje
+    const existing = await db.getFirstAsync(
+      'SELECT id FROM balance_history WHERE date = ?',
+      [today]
+    );
+    
+    if (existing) {
+      // Atualizar registro existente
+      await db.runAsync(
+        'UPDATE balance_history SET total_balance = ?, income = ?, expense = ? WHERE date = ?',
+        [balance.total, balance.income, balance.expense, today]
       );
-    });
-  });
+    } else {
+      // Inserir novo registro
+      await db.runAsync(
+        'INSERT INTO balance_history (total_balance, income, expense, date) VALUES (?, ?, ?, ?)',
+        [balance.total, balance.income, balance.expense, today]
+      );
+    }
+  } catch (error) {
+    console.error('Erro ao salvar histórico de saldo:', error);
+    throw error;
+  }
 };
 
 // Função para obter o histórico de saldo por período
-export const getBalanceHistory = (days: number): Promise<{ date: string; total: number; income: number; expense: number }[]> => {
-  return new Promise((resolve, reject) => {
+export const getBalanceHistory = async (days: number): Promise<{ date: string; total: number; income: number; expense: number }[]> => {
+  try {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     
-    db.transaction(tx => {
-      tx.executeSql(
-        `SELECT date, total_balance as total, income, expense 
-         FROM balance_history 
-         WHERE date BETWEEN ? AND ? 
-         ORDER BY date ASC`,
-        [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]],
-        (_, { rows }) => {
-          resolve(rows._array);
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
-  });
+    const result = await db.getAllAsync(
+      `SELECT date, total_balance as total, income, expense 
+       FROM balance_history 
+       WHERE date BETWEEN ? AND ? 
+       ORDER BY date ASC`,
+      [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]]
+    );
+    
+    return result as { date: string; total: number; income: number; expense: number }[];
+  } catch (error) {
+    console.error('Erro ao buscar histórico de saldo:', error);
+    throw error;
+  }
 };
 
 export default db; 

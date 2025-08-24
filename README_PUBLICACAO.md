@@ -7,17 +7,20 @@ Este manual contém instruções completas para gerar APK e AAB (Android App Bun
 ## 📋 **Pré-requisitos**
 
 ### 1. **Conta Google Play Console**
+
 - ✅ Conta Google Play Console ativa
 - ✅ Pagamento de taxa de desenvolvedor ($25 USD)
 - ✅ Acesso ao painel de desenvolvedor
 
 ### 2. **Ferramentas Necessárias**
+
 - ✅ Node.js (versão 18 ou superior)
 - ✅ Expo CLI (`npm install -g @expo/cli`)
 - ✅ EAS CLI (`npm install -g @expo/eas-cli`)
 - ✅ Conta Expo (gratuita)
 
 ### 3. **Assets Obrigatórios**
+
 - ✅ Ícone do app (1024x1024 PNG)
 - ✅ Screenshots do app (pelo menos 2)
 - ✅ Descrição do app
@@ -26,21 +29,25 @@ Este manual contém instruções completas para gerar APK e AAB (Android App Bun
 ## 🚀 **Configuração Inicial**
 
 ### 1. **Instalar EAS CLI**
+
 ```bash
 npm install -g eas-cli
 ```
 
 ### 2. **Fazer Login no Expo**
+
 ```bash
 eas login
 ```
 
 ### 3. **Configurar EAS Build**
+
 ```bash
 eas build:configure
 ```
 
 ### 4. **Configurar app.json**
+
 ```json
 {
   "expo": {
@@ -87,6 +94,7 @@ eas build:configure
 ## 📦 **Gerando Builds**
 
 ### 1. **Build de Desenvolvimento (APK)**
+
 ```bash
 # Gerar APK para testes
 eas build --platform android --profile development
@@ -96,12 +104,14 @@ eas build --platform android --profile preview
 ```
 
 ### 2. **Build de Produção (AAB)**
+
 ```bash
 # Gerar AAB para Play Store
 eas build --platform android --profile production
 ```
 
 ### 3. **Build Local (APK)**
+
 ```bash
 # Gerar APK localmente (mais rápido)
 eas build --platform android --local
@@ -110,6 +120,7 @@ eas build --platform android --local
 ## ⚙️ **Configuração de Perfis**
 
 ### 1. **eas.json - Desenvolvimento**
+
 ```json
 {
   "cli": {
@@ -144,6 +155,7 @@ eas build --platform android --local
 ## 🔐 **Configuração de Chaves**
 
 ### 1. **Gerar Keystore**
+
 ```bash
 # Gerar keystore automaticamente
 eas build:configure
@@ -153,6 +165,7 @@ keytool -genkey -v -keystore money-std.keystore -alias money-std -keyalg RSA -ke
 ```
 
 ### 2. **Configurar Credenciais**
+
 ```bash
 # Configurar credenciais do Google Play
 eas credentials
@@ -172,6 +185,7 @@ eas credentials
 ## 📱 **Preparação para Play Store**
 
 ### 1. **Assets Necessários**
+
 ```
 assets/
 ├── icon.png (1024x1024)
@@ -187,6 +201,7 @@ assets/
 ```
 
 ### 2. **Metadados do App**
+
 - **Nome**: Money STD
 - **Descrição curta**: Gerenciador de finanças pessoais
 - **Descrição completa**: App completo para controle de gastos e receitas...
@@ -195,6 +210,7 @@ assets/
 - **Classificação**: Livre para todos os públicos
 
 ### 3. **Política de Privacidade**
+
 - Criar política de privacidade
 - Hospedar em site público
 - Incluir link no app
@@ -202,18 +218,21 @@ assets/
 ## 🚀 **Comandos de Publicação**
 
 ### 1. **Build e Submit Automático**
+
 ```bash
 # Build e submit em um comando
 eas build --platform android --profile production --auto-submit
 ```
 
 ### 2. **Submit Manual**
+
 ```bash
 # Submit após build
 eas submit --platform android
 ```
 
 ### 3. **Build e Download**
+
 ```bash
 # Build e download local
 eas build --platform android --profile production --local
@@ -222,6 +241,7 @@ eas build --platform android --profile production --local
 ## 📊 **Monitoramento**
 
 ### 1. **Verificar Status do Build**
+
 ```bash
 # Listar builds
 eas build:list
@@ -231,6 +251,7 @@ eas build:view [BUILD_ID]
 ```
 
 ### 2. **Logs do Build**
+
 ```bash
 # Ver logs em tempo real
 eas build:logs [BUILD_ID]
@@ -239,6 +260,7 @@ eas build:logs [BUILD_ID]
 ## 🔧 **Solução de Problemas**
 
 ### 1. **Erro de Keystore**
+
 ```bash
 # Resetar keystore
 eas credentials --platform android --clear
@@ -248,6 +270,7 @@ eas build:configure
 ```
 
 ### 2. **Erro de Permissões**
+
 ```bash
 # Verificar permissões no app.json
 {
@@ -263,6 +286,7 @@ eas build:configure
 ```
 
 ### 3. **Erro de Versão**
+
 ```bash
 # Incrementar versionCode
 # Editar app.json
@@ -278,6 +302,7 @@ eas build:configure
 ## 📋 **Checklist de Publicação**
 
 ### ✅ **Pré-Build**
+
 - [ ] Assets criados (ícone, splash, screenshots)
 - [ ] app.json configurado
 - [ ] eas.json configurado
@@ -285,12 +310,14 @@ eas build:configure
 - [ ] EAS CLI instalado
 
 ### ✅ **Build**
+
 - [ ] Build de desenvolvimento testado
 - [ ] Build de produção gerado
 - [ ] AAB baixado e verificado
 - [ ] APK de teste gerado
 
 ### ✅ **Play Store**
+
 - [ ] Conta Google Play Console ativa
 - [ ] App criado no console
 - [ ] Metadados preenchidos
@@ -299,6 +326,7 @@ eas build:configure
 - [ ] AAB enviado para revisão
 
 ### ✅ **Pós-Publicação**
+
 - [ ] App aprovado pela Google
 - [ ] App publicado na Play Store
 - [ ] Monitoramento de downloads
@@ -307,6 +335,7 @@ eas build:configure
 ## 🎯 **Comandos Rápidos**
 
 ### **Desenvolvimento**
+
 ```bash
 # Build de desenvolvimento
 eas build --platform android --profile development
@@ -316,6 +345,7 @@ eas build --platform android --local
 ```
 
 ### **Produção**
+
 ```bash
 # Build de produção
 eas build --platform android --profile production
@@ -325,6 +355,7 @@ eas build --platform android --profile production --auto-submit
 ```
 
 ### **Monitoramento**
+
 ```bash
 # Ver builds
 eas build:list
@@ -336,22 +367,16 @@ eas build:logs [BUILD_ID]
 ## 📞 **Suporte**
 
 ### **Links Úteis**
+
 - [Expo Documentation](https://docs.expo.dev/)
 - [EAS Build Documentation](https://docs.expo.dev/build/introduction/)
 - [Google Play Console](https://play.google.com/console)
 - [Android Developer Guidelines](https://developer.android.com/distribute)
 
 ### **Comunidade**
+
 - [Expo Discord](https://discord.gg/expo)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/expo)
 - [GitHub Issues](https://github.com/expo/expo/issues)
 
 ---
-
-## 🎉 **Parabéns!**
-
-Seu app Money STD está pronto para ser publicado na Google Play Store! 
-
-Siga este manual passo a passo e você terá sucesso na publicação. 🚀
-
-**Boa sorte com seu app!** 📱✨ 
